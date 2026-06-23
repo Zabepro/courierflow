@@ -157,9 +157,61 @@
 
 /* Hover fills */
 .dark .cf-dashboard [class~="hover:bg-slate-50"]:hover,
+.dark .cf-dashboard [class~="hover:bg-slate-50/60"]:hover,
 .dark .cf-dashboard [class~="hover:bg-slate-50/70"]:hover,
 .dark .cf-dashboard [class~="hover:bg-slate-100"]:hover,
 .dark .cf-dashboard [class~="hover:bg-slate-200"]:hover { background-color: #20303a !important; }
+
+/* ── Coloured tint surfaces → subtle dark tints in dark mode ──────
+   Light pastel backgrounds (status pills, hint boxes, notes) became bright
+   blocks on a dark canvas. Remap them to a faint dark tint of the same hue
+   and lighten the matching text so everything stays legible + consistent.
+   Solid colours (-500/-600, e.g. brand/headers/buttons) are left untouched. */
+.dark .cf-dashboard [class~="bg-amber-50"],
+.dark .cf-dashboard [class~="bg-amber-50/60"],
+.dark .cf-dashboard [class~="bg-amber-100"]      { background-color: rgba(245, 158, 11, 0.13) !important; }
+.dark .cf-dashboard [class~="bg-green-50"],
+.dark .cf-dashboard [class~="bg-green-50/50"],
+.dark .cf-dashboard [class~="bg-green-100"],
+.dark .cf-dashboard [class~="bg-green-100/60"],
+.dark .cf-dashboard [class~="bg-emerald-50"]     { background-color: rgba(34, 197, 94, 0.13) !important; }
+.dark .cf-dashboard [class~="bg-red-50"],
+.dark .cf-dashboard [class~="bg-red-100"]        { background-color: rgba(239, 68, 68, 0.13) !important; }
+.dark .cf-dashboard [class~="bg-blue-50"],
+.dark .cf-dashboard [class~="bg-blue-100"]       { background-color: rgba(59, 130, 246, 0.13) !important; }
+.dark .cf-dashboard [class~="bg-orange-50"],
+.dark .cf-dashboard [class~="bg-orange-100"]     { background-color: rgba(249, 115, 22, 0.13) !important; }
+
+/* Coloured text lightened for contrast on the dark tints */
+.dark .cf-dashboard [class~="text-amber-600"],
+.dark .cf-dashboard [class~="text-amber-700"],
+.dark .cf-dashboard [class~="text-amber-800"]    { color: #fcd34d !important; }
+.dark .cf-dashboard [class~="text-green-600"],
+.dark .cf-dashboard [class~="text-green-700"],
+.dark .cf-dashboard [class~="text-emerald-600"],
+.dark .cf-dashboard [class~="text-emerald-700"]  { color: #6ee7b7 !important; }
+.dark .cf-dashboard [class~="text-red-500"],
+.dark .cf-dashboard [class~="text-red-600"],
+.dark .cf-dashboard [class~="text-red-700"]      { color: #fca5a5 !important; }
+.dark .cf-dashboard [class~="text-blue-600"],
+.dark .cf-dashboard [class~="text-blue-700"]     { color: #93c5fd !important; }
+.dark .cf-dashboard [class~="text-orange-500"],
+.dark .cf-dashboard [class~="text-orange-600"],
+.dark .cf-dashboard [class~="text-orange-700"]   { color: #fdba74 !important; }
+
+/* Coloured rings/borders on tints → subtle */
+.dark .cf-dashboard [class~="ring-amber-200"],
+.dark .cf-dashboard [class~="border-amber-100"],
+.dark .cf-dashboard [class~="border-amber-200"]  { --tw-ring-color: rgba(245,158,11,0.30) !important; border-color: rgba(245,158,11,0.22) !important; }
+.dark .cf-dashboard [class~="ring-green-200"],
+.dark .cf-dashboard [class~="ring-emerald-200"],
+.dark .cf-dashboard [class~="border-green-200"]  { --tw-ring-color: rgba(34,197,94,0.30) !important; border-color: rgba(34,197,94,0.22) !important; }
+.dark .cf-dashboard [class~="ring-red-200"],
+.dark .cf-dashboard [class~="border-red-200"]    { --tw-ring-color: rgba(239,68,68,0.30) !important; border-color: rgba(239,68,68,0.22) !important; }
+.dark .cf-dashboard [class~="ring-blue-200"],
+.dark .cf-dashboard [class~="border-blue-200"]   { --tw-ring-color: rgba(59,130,246,0.30) !important; border-color: rgba(59,130,246,0.22) !important; }
+.dark .cf-dashboard [class~="ring-orange-200"],
+.dark .cf-dashboard [class~="border-orange-200"] { --tw-ring-color: rgba(249,115,22,0.30) !important; border-color: rgba(249,115,22,0.22) !important; }
 
 /* Inputs */
 .dark .cf-dashboard input,
