@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   IconPackage, IconMapPin, IconUser, IconPhone,
-  IconNotes, IconArrowRight, IconX,
+  IconNotes, IconArrowRight, IconX, IconCurrentLocation,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import type { ApiDelivery } from "./types";
@@ -68,10 +68,60 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
   const [form, setForm]         = useState<FormData>(DEFAULT);
   const [errors, setErrors]     = useState<FieldErrors | null>(null);
   const [submitting, setSubmit] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [geoMsg, setGeoMsg]     = useState<string | null>(null);
 
   function set(k: keyof FormData, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
     if (errors?.[k]) setErrors((e) => e ? { ...e, [k]: undefined } : null);
+  }
+
+  /* Fill the pickup address from the device's GPS, reverse-geocoded to a
+     readable address via OpenStreetMap (free, no key). Falls back to manual
+     entry if the user denies permission or it's unavailable. */
+  function useMyLocation() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setGeoMsg("Location isn't supported here — please type the address.");
+      return;
+    }
+    setLocating(true);
+    setGeoMsg(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        try {
+          const res  = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
+            { headers: { "Accept-Language": "en" } },
+          );
+          const data = await res.json();
+          const addr = (data?.display_name as string | undefined)?.trim();
+          if (addr) {
+            setForm((f) => {
+              const a    = data.address ?? {};
+              const city = a.city ?? a.town ?? a.village ?? a.county ?? f.city;
+              return { ...f, pickupAddress: addr, city: city || f.city };
+            });
+            setErrors((e) => e ? { ...e, pickupAddress: undefined } : null);
+          } else {
+            set("pickupAddress", `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+          }
+        } catch {
+          set("pickupAddress", `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        } finally {
+          setLocating(false);
+        }
+      },
+      (err) => {
+        setLocating(false);
+        setGeoMsg(
+          err.code === err.PERMISSION_DENIED
+            ? "Location access denied — please type the address."
+            : "Couldn't get your location — please type the address.",
+        );
+      },
+      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
+    );
   }
 
   function hasErr(k: keyof FormData) { return !!errors?.[k]?.[0]; }
@@ -106,6 +156,7 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
       onCreated(data as ApiDelivery);
       setForm(DEFAULT);
       setErrors(null);
+      setGeoMsg(null);
       toast.success("Delivery created successfully");
     } catch {
       toast.error("Network error — please try again");
@@ -232,6 +283,25 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
                         className={cn(inputBase, hasErr("pickupAddress") ? inputErr : inputNormal)}
                       />
                       {errMsg("pickupAddress")}
+                      <button
+                        type="button"
+                        onClick={useMyLocation}
+                        disabled={locating}
+                        className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-semibold text-cf-primary transition-opacity hover:opacity-75 disabled:opacity-50"
+                      >
+                        {locating ? (
+                          <>
+                            <span className="h-3 w-3 animate-spin rounded-full border-2 border-cf-primary/30 border-t-cf-primary" />
+                            Locating…
+                          </>
+                        ) : (
+                          <>
+                            <IconCurrentLocation className="h-3.5 w-3.5" stroke={2} />
+                            Use my current location
+                          </>
+                        )}
+                      </button>
+                      {geoMsg && <p className="mt-1 text-[11px] font-medium text-amber-600">{geoMsg}</p>}
                     </div>
                   </div>
                   {/* Delivery */}
