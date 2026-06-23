@@ -19,8 +19,11 @@ export async function POST(
   if (!driver?.organizationId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
-  if (driver.role !== "DRIVER") {
-    return NextResponse.json({ error: "Only assigned drivers can submit proof of delivery" }, { status: 403 });
+  /* DRIVER may submit only for their own delivery; ADMIN may submit for any
+     delivery in their org (operating the driver flow / override). */
+  const isDriver = driver.role === "DRIVER";
+  if (!isDriver && driver.role !== "ADMIN") {
+    return NextResponse.json({ error: "Only assigned drivers or admins can submit proof of delivery" }, { status: 403 });
   }
 
   /* delivery must be IN_TRANSIT or DELIVERED (allow idempotent retry) */
@@ -28,7 +31,7 @@ export async function POST(
     where: {
       id,
       organizationId: driver.organizationId,
-      driverId:       driver.id,
+      ...(isDriver ? { driverId: driver.id } : {}),
       status:         { in: ["IN_TRANSIT", "DELIVERED"] },
     },
     select: { id: true, status: true },

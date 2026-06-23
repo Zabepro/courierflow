@@ -24,16 +24,17 @@ export async function POST(
   if (!driver?.organizationId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
-  if (driver.role !== "DRIVER") {
-    return NextResponse.json({ error: "Only assigned drivers can upload proof of delivery" }, { status: 403 });
+  const isDriver = driver.role === "DRIVER";
+  if (!isDriver && driver.role !== "ADMIN") {
+    return NextResponse.json({ error: "Only assigned drivers or admins can upload proof of delivery" }, { status: 403 });
   }
 
-  /* EC-14: delivery must be IN_TRANSIT and owned by this driver */
+  /* EC-14: delivery must be IN_TRANSIT; DRIVER restricted to their own, ADMIN any in org */
   const delivery = await prisma.delivery.findFirst({
     where: {
       id,
       organizationId: driver.organizationId,
-      driverId:       driver.id,
+      ...(isDriver ? { driverId: driver.id } : {}),
       status:         "IN_TRANSIT",
     },
     select: { id: true },
