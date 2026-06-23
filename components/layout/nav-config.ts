@@ -1,6 +1,6 @@
 import {
   IconLayoutDashboard, IconPackage, IconUsers,
-  IconSettings, IconTruck, IconMap2,
+  IconSettings, IconTruck, IconMap2, IconReportAnalytics,
 } from "@tabler/icons-react";
 
 export type NavEntry = {
@@ -15,6 +15,7 @@ export const NAV: NavEntry[] = [
   { href: "/dashboard/deliveries", label: "Deliveries", icon: IconPackage,         exact: false },
   { href: "/dashboard/drivers",    label: "Drivers",    icon: IconUsers,           exact: false },
   { href: "/dashboard/map",        label: "Fleet Map",  icon: IconMap2,            exact: false },
+  { href: "/dashboard/reports",    label: "Reports",    icon: IconReportAnalytics, exact: false },
 ];
 
 export const PORTAL_NAV: NavEntry[] = [
