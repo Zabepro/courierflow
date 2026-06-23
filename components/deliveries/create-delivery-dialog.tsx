@@ -11,6 +11,7 @@ import {
   IconNotes, IconArrowRight, IconX, IconCurrentLocation,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { AddressAutocomplete } from "./address-autocomplete";
 import type { ApiDelivery } from "./types";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
@@ -310,13 +311,18 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
                       <IconMapPin className="h-6 w-6" stroke={2} />
                     </div>
                     <div className="flex-1">
-                      <input
-                        placeholder="Delivery address *"
+                      <AddressAutocomplete
                         value={form.deliveryAddress}
-                        onChange={(e) => set("deliveryAddress", e.target.value)}
+                        onChange={(v) => set("deliveryAddress", v)}
+                        onSelect={(addr, city) => {
+                          setForm((f) => ({ ...f, deliveryAddress: addr, city: city || f.city }));
+                          setErrors((e) => e ? { ...e, deliveryAddress: undefined } : null);
+                        }}
+                        placeholder="Delivery address *"
                         className={cn(inputBase, hasErr("deliveryAddress") ? inputErr : inputNormal)}
                       />
                       {errMsg("deliveryAddress")}
+                      <p className="mt-1 text-[11px] text-slate-400">Type an area, street or landmark — pick a suggestion.</p>
                     </div>
                   </div>
                 </div>
