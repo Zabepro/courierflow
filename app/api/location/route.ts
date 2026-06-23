@@ -77,7 +77,10 @@ export async function POST(req: Request) {
   if (!driver?.organizationId) {
     return NextResponse.json({ error: "User not found" }, { status: 403 });
   }
-  if (driver.role !== "DRIVER") {
+  /* DRIVER submits for their own delivery; ADMIN may submit for any delivery in
+     their org (operating the driver flow / testing live tracking). */
+  const isDriver = driver.role === "DRIVER";
+  if (!isDriver && driver.role !== "ADMIN") {
     return NextResponse.json({ error: "Only drivers can submit locations" }, { status: 403 });
   }
 
@@ -90,10 +93,10 @@ export async function POST(req: Request) {
     where: {
       id:             deliveryId,
       organizationId: driver.organizationId,
-      driverId:       driver.id,
+      ...(isDriver ? { driverId: driver.id } : {}),
       status:         { in: ["ASSIGNED", "PICKED_UP", "IN_TRANSIT"] },
     },
-    select: { id: true },
+    select: { id: true, driverId: true },
   });
   if (!delivery) {
     return NextResponse.json({ error: "Delivery not found or not active" }, { status: 404 });
@@ -142,7 +145,7 @@ export async function POST(req: Request) {
   const loc = await prisma.locationUpdate.create({
     data: {
       deliveryId,
-      driverId:  driver.id,
+      driverId:  delivery.driverId ?? driver.id,
       latitude:  lat,
       longitude: lng,
       accuracy:  accuracy ?? null,

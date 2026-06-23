@@ -30,7 +30,8 @@ export async function POST(req: Request) {
   if (!driver?.organizationId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
-  if (driver.role !== "DRIVER") {
+  const isDriver = driver.role === "DRIVER";
+  if (!isDriver && driver.role !== "ADMIN") {
     return NextResponse.json({ error: "Only drivers can send SOS alerts" }, { status: 403 });
   }
 
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
     where: {
       id:             deliveryId,
       organizationId: driver.organizationId,
-      driverId:       driver.id,
+      ...(isDriver ? { driverId: driver.id } : {}),
     },
     select: {
       id:           true,
