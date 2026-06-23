@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   IconTruck, IconArrowRight, IconRoute, IconDeviceMobile,
   IconMap2, IconClipboardCheck, IconBolt, IconShieldCheck,
@@ -120,15 +121,25 @@ export function LandingContent() {
 
       {/* ───────────────────────── Hero ───────────────────────── */}
       <span id="top" className="absolute top-0" aria-hidden />
-      <section className="relative isolate overflow-hidden">
+      <section className="relative isolate overflow-hidden bg-[#0a1417]">
+        {/* Optimized, responsive background — served as AVIF/WebP at the right
+            size for each device (sharp on phones, light to download) instead of
+            a single heavy fixed-resolution JPG. */}
+        <Image
+          src="/hero-delivery.jpg"
+          alt=""
+          fill
+          priority
+          quality={90}
+          sizes="100vw"
+          className="-z-10 object-cover"
+        />
         <div
           className="absolute inset-0 -z-10"
           style={{
             background: `
               linear-gradient(to right, rgba(8,18,21,0.94) 0%, rgba(8,18,21,0.80) 42%, rgba(8,18,21,0.45) 100%),
-              linear-gradient(to bottom, rgba(8,18,21,0.25) 0%, rgba(8,18,21,0.30) 55%, rgba(10,20,23,1) 100%),
-              url('/hero-delivery.jpg') center/cover no-repeat,
-              linear-gradient(135deg, #0b5d5e 0%, #08323a 45%, #0a1417 100%)
+              linear-gradient(to bottom, rgba(8,18,21,0.25) 0%, rgba(8,18,21,0.30) 55%, rgba(10,20,23,1) 100%)
             `,
           }}
         />
