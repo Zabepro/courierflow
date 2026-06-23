@@ -20,6 +20,36 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Payment webhooks
+
+**AzamPay does not sign its callbacks** — there is no shared webhook secret, no
+HMAC and no `x-azampay-signature` header (their dashboard exposes only a Client
+ID and Client Secret, which are used for the API auth token, not callbacks). So
+`/api/webhooks/azampay` cannot be secured by signature verification. Instead it
+is protected by three independent layers:
+
+1. **URL secret token** — set `AZAMPAY_WEBHOOK_TOKEN` to a long random value and
+   register the callback URL with that token attached, e.g.
+   `https://your-app/api/webhooks/azampay?token=<AZAMPAY_WEBHOOK_TOKEN>`.
+   Requests without the exact token are rejected (401). This token is **required
+   in production**; local development may omit it for sandbox testing.
+2. **Amount check** — a payment is only marked `PAID` for the exact amount that
+   was originally initiated. A callback claiming a different amount is refused.
+3. **Idempotency** — a payment already marked `PAID` is never re-processed.
+
+> Note: the URL token is defence-in-depth, not cryptographic proof of origin
+> (it is static and travels inside the URL over TLS). The strongest available
+> hardening — re-querying transaction status server-to-server with the
+> Client ID/Secret before marking `PAID` — is pending confirmation that
+> AzamPay's status endpoint covers MNO collections (it is currently documented
+> for disbursements only).
+
+## Proof-of-delivery uploads
+
+Configure CORS once in the Cloudflare R2 bucket settings; it is intentionally
+not configured during a customer upload request. Allow the deployed app origin,
+`PUT`, `GET`, and `HEAD` methods, and the `Content-Type` header.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

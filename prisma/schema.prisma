@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  DRIVER
+  VIEWER
+}
+
+enum DeliveryStatus {
+  PENDING
+  ASSIGNED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum SmsStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+enum PaymentMethod {
+  MPESA
+  TIGOPESA
+  AIRTEL_MONEY
+  CASH
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  logo      String?
+  phone     String?
+  address   String?
+  city      String?
+  country   String   @default("Tanzania")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users      User[]
+  deliveries Delivery[]
+  smsLogs    SmsLog[]
+  payments   Payment[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String        @id @default(cuid())
+  clerkId        String        @unique
+  email          String        @unique
+  name           String?
+  phone          String?
+  role           Role          @default(VIEWER)
+  organizationId String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization    Organization?    @relation(fields: [organizationId], references: [id])
+  deliveries      Delivery[]       @relation("DriverDeliveries")
+  locationUpdates LocationUpdate[]
+
+  @@map("users")
+}
+
+model Delivery {
+  id              String         @id @default(cuid())
+  trackingCode    String         @unique
+  organizationId  String
+  driverId        String?
+  senderName      String
+  senderPhone     String
+  recipientName   String
+  recipientPhone  String
+  pickupAddress   String
+  deliveryAddress String
+  city            String?
+  notes           String?
+  status          DeliveryStatus @default(PENDING)
+  priority        Priority       @default(NORMAL)
+  estimatedWeight Float?
+  fee             Decimal?       @db.Decimal(10, 2)
+  scheduledAt     DateTime?
+  pickedUpAt      DateTime?
+  deliveredAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  driver          User?            @relation("DriverDeliveries", fields: [driverId], references: [id])
+  proofOfDelivery ProofOfDelivery?
+  locationUpdates LocationUpdate[]
+  smsLogs         SmsLog[]
+  payment         Payment?
+
+  @@index([trackingCode])
+  @@index([organizationId, status])
+  @@index([driverId, status])
+  @@map("deliveries")
+}
+
+model ProofOfDelivery {
+  id            String   @id @default(cuid())
+  deliveryId    String   @unique
+  photoUrl      String?
+  signature     String?
+  recipientName String?
+  notes         String?
+  latitude      Float?
+  longitude     Float?
+  createdAt     DateTime @default(now())
+
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@map("proof_of_deliveries")
+}
+
+model LocationUpdate {
+  id         String   @id @default(cuid())
+  deliveryId String
+  driverId   String
+  latitude   Float
+  longitude  Float
+  accuracy   Float?
+  speed      Float?
+  heading    Float?
+  timestamp  DateTime @default(now())
+
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  driver   User     @relation(fields: [driverId], references: [id])
+
+  @@index([deliveryId, timestamp])
+  @@map("location_updates")
+}
+
+model SmsLog {
+  id              String    @id @default(cuid())
+  organizationId  String
+  deliveryId      String?
+  recipient       String
+  message         String
+  status          SmsStatus @default(PENDING)
+  provider        String    @default("africas_talking")
+  providerMsgId   String?
+  idempotencyKey  String?   @unique
+  retryCount      Int       @default(0)
+  cost            Decimal?  @db.Decimal(10, 4)
+  sentAt          DateTime?
+  createdAt       DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  delivery     Delivery?    @relation(fields: [deliveryId], references: [id])
+
+  @@index([organizationId, status])
+  @@map("sms_logs")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  organizationId  String
+  deliveryId      String        @unique
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @default("TZS")
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  phoneNumber     String?       // payer's mobile number for MNO push
+  reference       String?       @unique // our externalId sent to AzamPay
+  azampayTxId     String?       // transactionId returned by AzamPay
+  mpesaCode       String?       // carrier confirmation code (from webhook)
+  failureReason   String?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  delivery     Delivery     @relation(fields: [deliveryId], references: [id])
+
+  @@map("payments")
+}

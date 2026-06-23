@@ -2,26 +2,230 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* ── CourierFlow Brand Tokens ─────────────────────────────── */
+    --cf-primary: #0b5d5e;
+    --cf-accent: #da6e30;
+    --cf-warning: #f2b84b;
+    --cf-success: #2f6b4f;
+    --cf-background: #f4e7d3;
+    --cf-foreground: #17252a;
+    --cf-destructive: #b42318;
+
+    /* ── shadcn/ui HSL Mapping (light) ───────────────────────── */
+    --background: 35 63% 89%;
+    --foreground: 196 29% 13%;
+
+    --card: 35 50% 93%;
+    --card-foreground: 196 29% 13%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 196 29% 13%;
+
+    --primary: 181 79% 20%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 35 30% 83%;
+    --secondary-foreground: 196 29% 20%;
+
+    --muted: 35 25% 85%;
+    --muted-foreground: 196 15% 40%;
+
+    --accent: 24 67% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 4 76% 40%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 35 25% 78%;
+    --input: 35 25% 78%;
+    --ring: 181 79% 20%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 196 29% 8%;
+    --foreground: 35 63% 89%;
+
+    --card: 196 29% 11%;
+    --card-foreground: 35 63% 89%;
+
+    --popover: 196 29% 11%;
+    --popover-foreground: 35 63% 89%;
+
+    --primary: 181 55% 38%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 196 20% 18%;
+    --secondary-foreground: 35 63% 89%;
+
+    --muted: 196 20% 18%;
+    --muted-foreground: 35 25% 60%;
+
+    --accent: 24 67% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 4 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 196 20% 22%;
+    --input: 196 20% 22%;
+    --ring: 181 55% 38%;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  /* Gentle global readability bump — Tailwind sizes are rem-based, so every
+     text + spacing value scales proportionally and layouts stay intact. */
+  html {
+    font-size: 16.5px;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.006em;
+  }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* ════════════════════════════════════════════════════════════════════════
+ * Dashboard dark mode
+ * ────────────────────────────────────────────────────────────────────────
+ * The dashboard is built with literal slate/white utility classes rather than
+ * theme tokens. Instead of editing every component (risky), we remap the
+ * common neutral utilities to dark equivalents — centrally, in one place, and
+ * scoped to `.cf-dashboard` so the landing/auth pages are never affected.
+ * `[class~="x"]` matches an element that has the exact class token `x`.
+ * ════════════════════════════════════════════════════════════════════════ */
+.dark .cf-dashboard {
+  color-scheme: dark;
+}
+/* Page canvas — ONLY the full-height dashboard root (it also carries
+   `h-screen`). Portaled dialogs/sheets/dropdowns also get the `.cf-dashboard`
+   marker so the surface overrides below reach their inner `bg-white` parts,
+   but they must keep their own popover background — hence this is scoped to
+   the root via `.h-screen` and never touches the portals. */
+.dark .cf-dashboard.h-screen {
+  background-color: #0d171c !important;
+}
+
+/* Surfaces — cards, page background, subtle fills (all white/slate variants) */
+.dark .cf-dashboard [class~="bg-white"],
+.dark .cf-dashboard [class~="bg-white/95"],
+.dark .cf-dashboard [class~="bg-white/90"],
+.dark .cf-dashboard [class~="bg-white/80"]       { background-color: #15232a !important; }
+.dark .cf-dashboard [class~="bg-slate-50"],
+.dark .cf-dashboard [class~="bg-slate-50/80"],
+.dark .cf-dashboard [class~="bg-slate-50/70"],
+.dark .cf-dashboard [class~="bg-slate-50/60"]    { background-color: #0f1a20 !important; }
+.dark .cf-dashboard [class~="bg-slate-100"],
+.dark .cf-dashboard [class~="bg-slate-100/80"]   { background-color: #1c2b33 !important; }
+.dark .cf-dashboard [class~="bg-slate-200"]      { background-color: #25353e !important; }
+
+/* Text hierarchy — kept bright for readable contrast on dark surfaces */
+.dark .cf-dashboard [class~="text-slate-900"],
+.dark .cf-dashboard [class~="text-slate-800"]    { color: #eef3f4 !important; }
+.dark .cf-dashboard [class~="text-slate-700"]    { color: #dde4e7 !important; }
+.dark .cf-dashboard [class~="text-slate-600"]    { color: #c5cfd3 !important; }
+.dark .cf-dashboard [class~="text-slate-500"]    { color: #a6b3b9 !important; }
+.dark .cf-dashboard [class~="text-slate-400"]    { color: #8c9aa1 !important; }
+.dark .cf-dashboard [class~="text-slate-300"]    { color: #707e85 !important; }
+
+/* Rings */
+.dark .cf-dashboard [class~="ring-slate-50"],
+.dark .cf-dashboard [class~="ring-slate-100"],
+.dark .cf-dashboard [class~="ring-slate-200"]    { --tw-ring-color: #27373f !important; }
+
+/* Borders (incl. opacity variant used by map overlays) */
+.dark .cf-dashboard [class~="border-slate-50"],
+.dark .cf-dashboard [class~="border-slate-100"],
+.dark .cf-dashboard [class~="border-slate-200"],
+.dark .cf-dashboard [class~="border-slate-200/80"],
+.dark .cf-dashboard [class~="border-slate-300"]  { border-color: #27373f !important; }
+
+/* Dividers */
+.dark .cf-dashboard [class~="divide-slate-50"]  > :not([hidden]) ~ :not([hidden]),
+.dark .cf-dashboard [class~="divide-slate-100"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #213139 !important;
+}
+
+/* Hover fills */
+.dark .cf-dashboard [class~="hover:bg-slate-50"]:hover,
+.dark .cf-dashboard [class~="hover:bg-slate-50/70"]:hover,
+.dark .cf-dashboard [class~="hover:bg-slate-100"]:hover,
+.dark .cf-dashboard [class~="hover:bg-slate-200"]:hover { background-color: #20303a !important; }
+
+/* Inputs */
+.dark .cf-dashboard input,
+.dark .cf-dashboard textarea,
+.dark .cf-dashboard select { color: #eef3f4; }
+.dark .cf-dashboard input::placeholder,
+.dark .cf-dashboard textarea::placeholder { color: #74838b; }
+
+/* ── Landing hero — rotating headline word ────────────────────── */
+@keyframes cf-word-in {
+  0%   { opacity: 0; transform: translateY(0.45em) rotateX(-35deg); filter: blur(2px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+.cf-rotate-word {
+  display: inline-block;
+  transform-origin: bottom;
+  animation: cf-word-in 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Auth page entrance animations ────────────────────────────── */
+@keyframes cf-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cf-fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* Opacity-only — safe on the form wrapper (no transform = no containing
+   block, so Clerk popovers/dropdowns stay correctly positioned). */
+.cf-fade-in { animation: cf-fade-in 0.8s ease-out both; }
+/* Used only where there are no positioned popovers (the branded panel). */
+.cf-fade-up { animation: cf-fade-up 0.75s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-fade-in, .cf-fade-up, .cf-rotate-word { animation: none; }
+}
+
+/* ── Fleet Map marker animations ──────────────────────────────── */
+@keyframes cf-marker-pulse {
+  0%   { transform: scale(1);   opacity: 0.7; }
+  70%  { transform: scale(1.8); opacity: 0; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+@keyframes cf-gps-progress {
+  0%   { width: 0% }
+  100% { width: 100% }
+}
+
+/* Leaflet popup custom skin */
+.cf-popup .leaflet-popup-content-wrapper {
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  padding: 0;
+  overflow: hidden;
+  border: none;
+}
+.cf-popup .leaflet-popup-content {
+  margin: 0;
+  min-width: 230px;
+}
+.cf-popup .leaflet-popup-tip {
+  background: white;
+}
+.cf-popup .leaflet-popup-close-button {
+  color: #94a3b8 !important;
+  font-size: 20px;
+  top: 10px !important;
+  right: 10px !important;
 }

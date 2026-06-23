@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="15" fill="#0b5d5e"/>
+  <!-- cargo body -->
+  <path d="M11 20a3 3 0 0 1 3-3h18a2 2 0 0 1 2 2v19H11z" fill="#fff"/>
+  <!-- cab + hood -->
+  <path d="M34 24h12l7 8v6H34z" fill="#fff"/>
+  <!-- wheels -->
+  <circle cx="21" cy="42" r="5.5" fill="#fff"/>
+  <circle cx="45" cy="42" r="5.5" fill="#fff"/>
+  <circle cx="21" cy="42" r="2.2" fill="#0b5d5e"/>
+  <circle cx="45" cy="42" r="2.2" fill="#0b5d5e"/>
+</svg>
