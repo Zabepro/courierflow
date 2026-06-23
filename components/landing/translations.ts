@@ -158,7 +158,7 @@ export const translations: Record<Lang, Dict> = {
         ] },
       ],
       copyright: "CourierFlow · Delivery management for Tanzania",
-      madeIn: "Made in Tanzania 🇹🇿",
+      madeIn: "Made in Tanzania",
     },
   },
 
@@ -276,7 +276,7 @@ export const translations: Record<Lang, Dict> = {
         ] },
       ],
       copyright: "CourierFlow · Usimamizi wa uwasilishaji Tanzania",
-      madeIn: "Imetengenezwa Tanzania 🇹🇿",
+      madeIn: "Imetengenezwa Tanzania",
     },
   },
 };

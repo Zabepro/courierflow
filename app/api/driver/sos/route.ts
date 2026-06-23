@@ -61,7 +61,7 @@ export async function POST(req: Request) {
   const msgLine   = message ? `Ujumbe: ${message}` : "";
 
   const smsText = [
-    `🆘 SOS — ${driverName}`,
+    `SOS ALERT — ${driverName}`,
     `Delivery: ${delivery.trackingCode}`,
     locLine,
     msgLine,
