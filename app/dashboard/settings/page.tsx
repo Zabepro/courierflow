@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db/prisma";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { OrgSettingsForm } from "@/components/settings/org-settings-form";
 import { PageBanner } from "@/components/layout/page-banner";
+import { DangerZone } from "@/components/settings/danger-zone";
 
 const ROLE_META: Record<string, { label: string; icon: React.ElementType; badge: string }> = {
   ADMIN:  { label: "Admin",  icon: IconShieldCheck, badge: "bg-cf-primary/10 text-cf-primary ring-1 ring-cf-primary/20" },
@@ -134,6 +135,9 @@ export default async function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Danger zone — admin only */}
+      {canEdit && <DangerZone orgName={org.name} />}
     </div>
   );
 }
