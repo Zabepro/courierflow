@@ -7,6 +7,7 @@ import {
 import { prisma } from "@/lib/db/prisma";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { OrgSettingsForm } from "@/components/settings/org-settings-form";
+import { PageBanner } from "@/components/layout/page-banner";
 
 const ROLE_META: Record<string, { label: string; icon: React.ElementType; badge: string }> = {
   ADMIN:  { label: "Admin",  icon: IconShieldCheck, badge: "bg-cf-primary/10 text-cf-primary ring-1 ring-cf-primary/20" },
@@ -68,11 +69,13 @@ export default async function SettingsPage() {
   const since   = org.createdAt.toLocaleDateString("en-TZ", { month: "short", year: "numeric" });
 
   return (
-    <div className="max-w-4xl space-y-8">
-      <div>
-        <h2 className="font-heading text-xl font-semibold text-slate-800">Settings</h2>
-        <p className="text-sm text-slate-500 mt-1">Manage your organization profile and team</p>
-      </div>
+    <div className="max-w-4xl space-y-6">
+      <PageBanner
+        image="/banners/settings.jpg"
+        title="Settings"
+        subtitle="Manage your organization profile and team"
+        alt="Modern office workspace"
+      />
 
       {/* Stats */}
       <div className="grid gap-4 grid-cols-1 sm:gap-5 sm:grid-cols-3">

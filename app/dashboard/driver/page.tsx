@@ -6,6 +6,7 @@ import {
   IconTruck, IconMapPin, IconPackage, IconChevronRight,
   IconClockHour4, IconRoute, IconCircleCheck, IconBolt,
 } from "@tabler/icons-react";
+import { PageBanner } from "@/components/layout/page-banner";
 
 const STATUS_LABEL: Record<string, { label: string; cls: string; dot: string }> = {
   ASSIGNED:   { label: "Assigned",   cls: "bg-blue-50   text-blue-700   ring-1 ring-blue-200",   dot: "bg-blue-500"   },
@@ -79,18 +80,13 @@ export default async function DriverHomePage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-cf-primary shadow-sm shadow-cf-primary/20">
-          <IconTruck className="h-6 w-6 text-white" stroke={1.8} />
-        </div>
-        <div className="min-w-0">
-          <h1 className="font-heading text-xl font-bold text-slate-800 truncate">Driver Portal</h1>
-          <p className="text-sm text-slate-500 truncate">
-            {user.name ? `Welcome back, ${user.name}` : "Your active deliveries"}
-          </p>
-        </div>
-      </div>
+      {/* Header banner */}
+      <PageBanner
+        image="/banners/driver.jpg"
+        title="Driver Portal"
+        subtitle={user.name ? `Welcome back, ${user.name}` : "Your active deliveries"}
+        alt="Delivery rider on a motorcycle"
+      />
 
       {/* Stat strip */}
       <div className="grid grid-cols-3 gap-3">
