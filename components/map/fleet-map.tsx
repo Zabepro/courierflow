@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   IconTruck, IconRefresh, IconWifi, IconWifiOff, IconSearch,
   IconFocusCentered, IconChevronRight, IconChevronLeft, IconMapPinOff, IconX,
+  IconInfoCircle,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
@@ -65,6 +66,7 @@ export function FleetMap() {
   const [focusNonce, setFocusNonce] = useState(0);
   const [fitAllNonce, setFitAllNonce] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [legendOpen, setLegendOpen]   = useState(false);
 
   const fetchPins = useCallback(async (): Promise<boolean> => {
     try {
@@ -219,10 +221,29 @@ export function FleetMap() {
         )}
       </div>
 
-      {/* ── Legend (bottom-left) ─────────────────────────── */}
+      {/* ── Legend (bottom-left, collapsible so it never blocks the map) ── */}
       <div className="absolute bottom-8 left-4 z-[1000]">
+        {!legendOpen ? (
+          <button
+            onClick={() => setLegendOpen(true)}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white/95 px-3 py-2 text-xs font-semibold text-slate-600 shadow-lg backdrop-blur-sm transition-colors hover:bg-slate-50"
+            title="Show legend"
+          >
+            <IconInfoCircle className="h-4 w-4 text-cf-primary" stroke={2} />
+            Legend
+          </button>
+        ) : (
         <div className="rounded-xl border border-slate-200/80 bg-white/95 shadow-lg backdrop-blur-sm px-4 py-3 space-y-2">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Legend</p>
+          <div className="flex items-center justify-between gap-6">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Legend</p>
+            <button
+              onClick={() => setLegendOpen(false)}
+              className="rounded p-0.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+              title="Hide legend"
+            >
+              <IconX className="h-3.5 w-3.5" stroke={2} />
+            </button>
+          </div>
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-500 text-[8px] font-bold text-white shrink-0">AB</span>
@@ -251,6 +272,7 @@ export function FleetMap() {
             ))}
           </div>
         </div>
+        )}
       </div>
 
       {/* ── Driver list sidebar (right) ──────────────────── */}

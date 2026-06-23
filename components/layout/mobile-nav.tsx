@@ -42,7 +42,7 @@ export function MobileNav() {
         onClick={close}
         aria-hidden
         className={cn(
-          "fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-200",
+          "fixed inset-0 z-[2500] bg-slate-900/50 backdrop-blur-sm transition-opacity duration-200",
           open ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       />
@@ -52,7 +52,7 @@ export function MobileNav() {
         role="dialog"
         aria-modal="true"
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-72 max-w-[82%] flex-col bg-white shadow-2xl transition-transform duration-300 ease-out",
+          "fixed inset-y-0 left-0 z-[2600] flex w-72 max-w-[82%] flex-col bg-white shadow-2xl transition-transform duration-300 ease-out",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
