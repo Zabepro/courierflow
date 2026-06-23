@@ -71,11 +71,28 @@ export async function mnoCheckout({
 
   console.info(`[AzamPay] Checkout provider=${provider} phone=${maskPhone(normalizedPhone)} amount=${amount}`);
 
-  const res = await fetch(`${CHECKOUT_URL}/azampay/mno/checkout`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify(body),
-  });
+  /* AzamPay's first (cold) connection occasionally drops mid-handshake. Retry
+     transport errors only — the externalId is unchanged so AzamPay dedupes, and
+     we never retry once a response is received (no risk of double-charging). */
+  let res: Response | undefined;
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      res = await fetch(`${CHECKOUT_URL}/azampay/mno/checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+      break;
+    } catch (err) {
+      lastErr = err;
+      console.warn(`[AzamPay] Checkout transport error (attempt ${attempt}/3): ${err instanceof Error ? err.message : String(err)}`);
+      if (attempt < 3) await new Promise((r) => setTimeout(r, 600 * attempt));
+    }
+  }
+  if (!res) {
+    return { success: false, message: `AzamPay temporarily unreachable: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}` };
+  }
 
   const text = await res.text();
   console.info(`[AzamPay] Checkout response status=${res.status} bodyPresent=${Boolean(text.trim())}`);
