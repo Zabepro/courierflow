@@ -1,11 +1,20 @@
 import Link from "next/link";
 import { IconArrowRight } from "@tabler/icons-react";
 import { StatsCards } from "@/components/dashboard/stats-cards";
+import { PageBanner } from "@/components/layout/page-banner";
 import { DeliveriesSection } from "./deliveries-section";
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Page banner */}
+      <PageBanner
+        image="/banners/overview.jpg"
+        title="Overview"
+        subtitle="Your delivery operation at a glance — deliveries, drivers and revenue."
+        alt="Aerial view of a logistics distribution centre"
+      />
+
       {/* KPI stats */}
       <StatsCards />
 
