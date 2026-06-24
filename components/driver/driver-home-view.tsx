@@ -3,7 +3,7 @@
 import Link from "next/link";
 import {
   IconTruck, IconMapPin, IconPackage, IconChevronRight,
-  IconClockHour4, IconRoute, IconCircleCheck, IconBolt,
+  IconClockHour4, IconRoute, IconCircleCheck, IconBolt, IconCashBanknote,
 } from "@tabler/icons-react";
 import { TranslatedBanner } from "@/components/layout/translated-banner";
 import { useLanguage } from "@/lib/i18n/context";
@@ -24,6 +24,7 @@ type DriverHomeViewProps = {
   isDriver: boolean;
   deliveries: DeliverySummary[];
   completedToday: number;
+  cashCollectedToday: number;
   toPickup: number;
   onTheRoad: number;
 };
@@ -37,13 +38,13 @@ function StatPill({
   tint: string;
 }) {
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-xl bg-white p-3.5 ring-1 ring-slate-100 shadow-sm transition-all">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-xl bg-white dark:bg-slate-900 p-3.5 ring-1 ring-slate-100 dark:ring-white/10 shadow-sm transition-all h-full">
       <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tint}`}>
         <Icon className="h-5 w-5" stroke={2} />
       </div>
       <div className="min-w-0">
-        <p className="text-2xl font-bold leading-none tabular-nums text-slate-800">{value}</p>
-        <p className="mt-1 text-[11px] font-medium text-slate-400 truncate">{label}</p>
+        <p className="text-2xl font-bold leading-none tabular-nums text-slate-800 dark:text-white">{value}</p>
+        <p className="mt-1 text-[11px] font-medium text-slate-400 dark:text-slate-500 truncate">{label}</p>
       </div>
     </div>
   );
@@ -54,10 +55,11 @@ export function DriverHomeView({
   isDriver,
   deliveries,
   completedToday,
+  cashCollectedToday,
   toPickup,
   onTheRoad,
 }: DriverHomeViewProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const d = t.driverPortal;
   const s = t.deliveries.statuses;
   const p = t.deliveries.createDialog.priority;
@@ -84,11 +86,24 @@ export function DriverHomeView({
       />
 
       {/* Stat strip */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <StatPill icon={IconClockHour4}  value={toPickup}      label={d.toPickup}     tint="bg-blue-50 text-blue-600" />
-        <StatPill icon={IconRoute}       value={onTheRoad}     label={d.onTheRoad}    tint="bg-orange-50 text-orange-500" />
-        <div className="col-span-2 sm:col-span-1">
-          <StatPill icon={IconCircleCheck} value={completedToday} label={d.doneToday}    tint="bg-emerald-50 text-emerald-600" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatPill icon={IconClockHour4}  value={toPickup}      label={d.toPickup}     tint="bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400" />
+        <StatPill icon={IconRoute}       value={onTheRoad}     label={d.onTheRoad}    tint="bg-orange-50 text-orange-500 dark:bg-orange-500/20 dark:text-orange-400" />
+        <StatPill icon={IconCircleCheck} value={completedToday} label={d.doneToday}    tint="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400" />
+        <div className="col-span-2 sm:col-span-1 sm:col-start-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-xl bg-white dark:bg-slate-900 p-3.5 ring-1 ring-slate-100 dark:ring-white/10 shadow-sm transition-all h-full">
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-500 dark:bg-amber-500/20 dark:text-amber-400`}>
+              {/* @ts-ignore */}
+              <IconCashBanknote className="h-5 w-5" stroke={2} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-bold leading-none tabular-nums text-slate-800 dark:text-white">
+                <span className="text-xs mr-0.5 text-slate-400 dark:text-slate-500 font-semibold">TZS</span>
+                {cashCollectedToday.toLocaleString()}
+              </p>
+              <p className="mt-1 text-[11px] font-medium text-slate-400 dark:text-slate-500 truncate">{lang === "sw" ? "Pesa mkononi" : "Cash collected"}</p>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -31,13 +31,17 @@ export default async function DriverHomePage() {
     },
   });
 
-  const completedToday = await prisma.delivery.count({
+  const deliveriesDeliveredToday = await prisma.delivery.findMany({
     where: {
       ...(isDriver ? { driverId: user.id } : { organizationId: user.organizationId! }),
       status:      "DELIVERED",
       deliveredAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
     },
+    select: { fee: true },
   });
+
+  const completedToday = deliveriesDeliveredToday.length;
+  const cashCollectedToday = deliveriesDeliveredToday.reduce((sum, d) => sum + (Number(d.fee) || 0), 0);
 
   const toPickup  = deliveries.filter((d) => d.status === "ASSIGNED").length;
   const onTheRoad = deliveries.filter((d) => d.status === "PICKED_UP" || d.status === "IN_TRANSIT").length;
@@ -48,6 +52,7 @@ export default async function DriverHomePage() {
       isDriver={isDriver}
       deliveries={deliveries}
       completedToday={completedToday}
+      cashCollectedToday={cashCollectedToday}
       toPickup={toPickup}
       onTheRoad={onTheRoad}
     />

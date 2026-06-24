@@ -210,7 +210,43 @@ export type DashboardDict = {
         submit: string;
         submitting: string;
       };
-    };
+        podModal: {
+          title: string;
+          subtitle: string;
+          receivedBy: string;
+          receivedByPlaceholder: string;
+          receivedByHint: string;
+          photo: string;
+          photoGood: string;
+          package: string;
+          recipient: string;
+          location: string;
+          takePhoto: string;
+          takePhotoHint: string;
+          retake: string;
+          remove: string;
+          compressing: string;
+          photoReady: string;
+          signature: string;
+          notes: string;
+          notesPlaceholder: string;
+          optional: string;
+          saving: string;
+          stepUploading: string;
+          stepSaving: string;
+          waitWarning: string;
+          uploadFailed: string;
+          cancel: string;
+          markDelivered: string;
+          processingPhoto: string;
+          retry: string;
+          successTitle: string;
+          successDesc: string;
+          closingAuto: string;
+          cashToCollect: string;
+          cashHint: string;
+        };
+      };
   };
   dashboard: {
     bannerTitle: string;
@@ -465,6 +501,42 @@ export const dashboardTranslations: Record<Lang, DashboardDict> = {
           submit: "Report Issue",
           submitting: "Submitting...",
         },
+        podModal: {
+          title: "Confirm Delivery",
+          subtitle: "Fill in the details to complete",
+          receivedBy: "Received by",
+          receivedByPlaceholder: "Full name of person who received",
+          receivedByHint: "Required to complete the delivery",
+          photo: "Delivery photo",
+          photoGood: "Good proof photo should show:",
+          package: "Package",
+          recipient: "Recipient",
+          location: "Location",
+          takePhoto: "Take Photo",
+          takePhotoHint: "Camera or gallery · auto-compressed",
+          retake: "Retake",
+          remove: "Remove",
+          compressing: "Compressing…",
+          photoReady: "Photo ready",
+          signature: "Recipient signature",
+          notes: "Notes",
+          notesPlaceholder: "e.g. Left at front door, given to security guard…",
+          optional: "optional",
+          saving: "Saving proof…",
+          stepUploading: "Uploading files to server",
+          stepSaving: "Saving delivery record",
+          waitWarning: "Please wait — do not close this window",
+          uploadFailed: "Upload failed",
+          cancel: "Cancel",
+          markDelivered: "Mark as Delivered",
+          processingPhoto: "Processing photo…",
+          retry: "Retry",
+          successTitle: "Delivery Confirmed!",
+          successDesc: "Proof of delivery saved successfully",
+          closingAuto: "Closing automatically…",
+          cashToCollect: "CASH TO COLLECT",
+          cashHint: "Collect this amount before handing over the package.",
+        },
       },
     },
     dashboard: {
@@ -717,6 +789,42 @@ export const dashboardTranslations: Record<Lang, DashboardDict> = {
           cancel: "Ghairi",
           submit: "Tuma Ripoti",
           submitting: "Inatuma...",
+        },
+        podModal: {
+          title: "Thibitisha Mzigo Kufika",
+          subtitle: "Jaza taarifa kukamilisha",
+          receivedBy: "Amepokelewa na",
+          receivedByPlaceholder: "Jina kamili la aliyepokea",
+          receivedByHint: "Ni lazima kujaza ili kukamilisha",
+          photo: "Picha ya mzigo",
+          photoGood: "Picha nzuri inapaswa kuonyesha:",
+          package: "Kifurushi",
+          recipient: "Mpokeaji",
+          location: "Eneo",
+          takePhoto: "Piga Picha",
+          takePhotoHint: "Kamera au nyumba ya picha · itapunguzwa ukubwa",
+          retake: "Piga Tena",
+          remove: "Ondoa",
+          compressing: "Inapunguza ukubwa…",
+          photoReady: "Picha ipo tayari",
+          signature: "Sahihi ya mpokeaji",
+          notes: "Maelezo",
+          notesPlaceholder: "mf. Nimeacha getini, nimempa mlinzi…",
+          optional: "sio lazima",
+          saving: "Inahifadhi kithibitisho…",
+          stepUploading: "Inatuma picha na sahihi kwenye mfumo",
+          stepSaving: "Inahifadhi rekodi ya mzigo",
+          waitWarning: "Tafadhali subiri — usifunge dirisha hili",
+          uploadFailed: "Imeshindikana kutuma",
+          cancel: "Ghairi",
+          markDelivered: "Kamilisha Kufika",
+          processingPhoto: "Inashughulikia picha…",
+          retry: "Jaribu Tena",
+          successTitle: "Mzigo Umethibitishwa!",
+          successDesc: "Kithibitisho cha mzigo kimehifadhiwa kikamilifu",
+          closingAuto: "Inajifunga yenyewe…",
+          cashToCollect: "PESA YA KUKUSANYA (CASH)",
+          cashHint: "Kusanya kiasi hiki cha pesa kabla ya kutoa mzigo.",
         },
       },
     },

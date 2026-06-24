@@ -8,7 +8,7 @@ import {
   IconAlertTriangle, IconWifiOff, IconRefresh, IconCheck,
   IconSatellite, IconCloudUpload, IconPhone, IconAlertOctagon,
   IconClipboardCheck, IconUser, IconCamera, IconTrash,
-  IconPackage, IconBrandWhatsapp,
+  IconPackage, IconBrandWhatsapp, IconCashBanknote,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/context";
@@ -123,7 +123,7 @@ const STATUS_BADGE: Record<string, string> = {
   ASSIGNED:   "bg-blue-100   text-blue-700",
   PICKED_UP:  "bg-amber-100  text-amber-700",
   IN_TRANSIT: "bg-orange-100 text-orange-700",
-  DELIVERED:  "bg-green-100  text-green-700",
+  DELIVERED:  "bg-green-100  text-cf-primary dark:text-cf-primary",
   CANCELLED:  "bg-slate-100  text-slate-500",
 };
 
@@ -508,7 +508,7 @@ export function DriverDeliveryPage({
   /* ── Render ──────────────────────────────────────────────────────────── */
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-800">
 
       {/* Sticky header */}
       <div className="sticky top-0 z-20 bg-white border-b shadow-sm">
@@ -520,12 +520,12 @@ export function DriverDeliveryPage({
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 leading-none">Delivery</p>
             <div className="flex items-center gap-2">
-              <h1 className="font-heading text-base font-bold text-slate-800 truncate">{delivery.trackingCode}</h1>
+              <h1 className="font-heading text-base font-bold text-slate-800 dark:text-white truncate">{delivery.trackingCode}</h1>
               {gpsStatus === "active" && (
                 <div title="GPS Tracking Active" className="flex items-center justify-center h-4 w-4 rounded-full bg-green-50 ring-1 ring-green-200">
                   <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-cf-primary/40 opacity-75 animate-ping" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-cf-primary" />
                   </span>
                 </div>
               )}
@@ -533,7 +533,7 @@ export function DriverDeliveryPage({
           </div>
           <span className={cn(
             "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide",
-            STATUS_BADGE[delivery.status] ?? "bg-slate-100 text-slate-600"
+            STATUS_BADGE[delivery.status] ?? "bg-slate-100 text-slate-600 dark:text-slate-300"
           )}>
             {delivery.status.replace("_", " ")}
           </span>
@@ -543,7 +543,7 @@ export function DriverDeliveryPage({
       <div className="max-w-lg mx-auto px-4 py-5 space-y-4">
 
         {/* Route card */}
-        <div className="rounded-xl bg-white border border-slate-200 p-5 space-y-4">
+        <div className="rounded-xl bg-white border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white p-5 space-y-4">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Delivery Route</p>
 
           <div className="relative">
@@ -592,7 +592,7 @@ export function DriverDeliveryPage({
           {delivery.notes && (
             <div className="pt-3 border-t border-slate-100">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Driver Notes</p>
-              <p className="text-sm text-slate-600 leading-relaxed bg-amber-50 rounded-lg px-3 py-2.5 border border-amber-100">
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-amber-50 rounded-lg px-3 py-2.5 border border-amber-100">
                 {delivery.notes}
               </p>
             </div>
@@ -626,12 +626,12 @@ export function DriverDeliveryPage({
         )}
 
         {isTerminal && (
-          <div className="rounded-xl bg-green-50 border border-green-200 p-5 text-center">
+          <div className="rounded-xl bg-cf-primary/5 border border-cf-primary/20 dark:bg-cf-primary/10 dark:border-cf-primary/30 p-5 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mx-auto mb-3">
-              <IconCheck className="h-6 w-6 text-green-600" strokeWidth={2.5} />
+              <IconCheck className="h-6 w-6 text-cf-primary" strokeWidth={2.5} />
             </div>
-            <p className="font-bold text-green-700">Delivery Complete</p>
-            <p className="text-sm text-green-600 mt-0.5">
+            <p className="font-bold text-cf-primary dark:text-cf-primary">Delivery Complete</p>
+            <p className="text-sm text-cf-primary mt-0.5">
               {delivery.status === "DELIVERED" ? "Marked as delivered successfully" : delivery.status.toLowerCase()}
             </p>
           </div>
@@ -674,7 +674,7 @@ function formatSize(kb: number): string {
 function StepLabel({ n, label, optional }: { n: number; label: string; optional?: boolean }) {
   return (
     <div className="flex items-center gap-2.5 mb-2.5">
-      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-600 text-white text-[10px] font-black">
+      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cf-primary text-white text-[10px] font-black">
         {n}
       </div>
       <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
