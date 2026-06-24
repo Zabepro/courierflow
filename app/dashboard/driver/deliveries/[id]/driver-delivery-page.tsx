@@ -278,6 +278,14 @@ export function DriverDeliveryPage({
     };
   }, [flushQueue]);
 
+  /* ── Auto-start GPS ── */
+  useEffect(() => {
+    if (["PICKED_UP", "IN_TRANSIT"].includes(delivery.status) && watchIdRef.current === null) {
+      startGps();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [delivery.status]);
+
   /* ── GPS send (with offline fallback) ───────────────────────────────── */
 
   async function sendLocation(lat: number, lng: number, accuracy: number | null) {
@@ -496,9 +504,6 @@ export function DriverDeliveryPage({
 
   const transitions    = TRANSITIONS[delivery.status] ?? [];
   const isTerminal     = ["DELIVERED", "FAILED", "CANCELLED"].includes(delivery.status);
-  const showGps        = GPS_STATUSES.includes(delivery.status);
-  const isNetworkIssue = consecutiveErrors >= 3;
-  const isStale        = !!lastSentAt && secsAgo >= STALE_S;
 
   /* ── Render ──────────────────────────────────────────────────────────── */
 
@@ -514,7 +519,17 @@ export function DriverDeliveryPage({
           </Link>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 leading-none">Delivery</p>
-            <h1 className="font-heading text-base font-bold text-slate-800 truncate">{delivery.trackingCode}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="font-heading text-base font-bold text-slate-800 truncate">{delivery.trackingCode}</h1>
+              {gpsStatus === "active" && (
+                <div title="GPS Tracking Active" className="flex items-center justify-center h-4 w-4 rounded-full bg-green-50 ring-1 ring-green-200">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
           <span className={cn(
             "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide",
@@ -526,28 +541,6 @@ export function DriverDeliveryPage({
       </div>
 
       <div className="max-w-lg mx-auto px-4 py-5 space-y-4">
-
-        {/* GPS card */}
-        {showGps && (
-          <GpsCard
-            status={gpsStatus}
-            coords={coords}
-            secsAgo={secsAgo}
-            lastSentAt={lastSentAt}
-            isNetworkIssue={isNetworkIssue}
-            isStale={isStale}
-            isOnline={isOnline}
-            offlineQueue={offlineQueue}
-            isFlushing={isFlushing}
-            rejectedCount={rejectedCount}
-            orgPhone={orgPhone}
-            orgName={orgName}
-            trackingCode={delivery.trackingCode}
-            onStart={startGps}
-            onStop={stopGps}
-            onSos={sendSos}
-          />
-        )}
 
         {/* Route card */}
         <div className="rounded-xl bg-white border border-slate-200 p-5 space-y-4">
