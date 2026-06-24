@@ -93,7 +93,6 @@ export function DriverHomeView({
         <div className="col-span-2 sm:col-span-1 sm:col-start-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-xl bg-white dark:bg-slate-900 p-3.5 ring-1 ring-slate-100 dark:ring-white/10 shadow-sm transition-all h-full">
             <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-500 dark:bg-amber-500/20 dark:text-amber-400`}>
-              {/* @ts-ignore */}
               <IconCashBanknote className="h-5 w-5" stroke={2} />
             </div>
             <div className="min-w-0">
