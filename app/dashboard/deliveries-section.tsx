@@ -14,58 +14,60 @@ import { DeliveryTable } from "@/components/deliveries/delivery-table";
 import { DeliveryTableSkeleton } from "@/components/deliveries/delivery-table-skeleton";
 import { CreateDeliveryDialog } from "@/components/deliveries/create-delivery-dialog";
 import type { ApiDelivery, DeliveriesResponse, FilterState } from "@/components/deliveries/types";
+import { useLanguage } from "@/lib/i18n/context";
+import { DashboardDict } from "@/lib/i18n/dictionary";
 
 const DEFAULT_FILTERS: FilterState = { status: "", trackingCode: "", from: "", to: "" };
 const PAGE_SIZE = 25;
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-function EmptyState({ onCreate }: { onCreate: () => void }) {
+function EmptyState({ onCreate, t }: { onCreate: () => void; t: DashboardDict }) {
   return (
     <Card className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-200 bg-white shadow-sm">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cf-primary/8 mb-5">
         <IconPackageOff className="h-8 w-8 text-cf-primary/50" stroke={1.5} />
       </div>
       <h3 className="font-heading text-lg font-semibold text-slate-800 mb-1">
-        No deliveries yet
+        {t.dashboard.emptyTitle}
       </h3>
       <p className="text-sm text-slate-500 mb-6 max-w-xs">
-        Create your first delivery to start tracking packages across Tanzania.
+        {t.dashboard.emptyDesc}
       </p>
       <Button onClick={onCreate} className="bg-cf-primary hover:bg-cf-primary/90 text-white">
         <IconPlus className="mr-2 h-4 w-4" />
-        Create First Delivery
+        {t.dashboard.createFirst}
       </Button>
     </Card>
   );
 }
 
-function FilteredEmptyState({ onClear }: { onClear: () => void }) {
+function FilteredEmptyState({ onClear, t }: { onClear: () => void; t: DashboardDict }) {
   return (
     <Card className="flex flex-col items-center justify-center py-14 text-center border border-dashed bg-white">
       <IconPackageOff className="h-10 w-10 text-slate-300 mb-3" stroke={1.5} />
-      <p className="text-sm font-medium text-slate-600 mb-1">No deliveries match your filters</p>
-      <p className="text-xs text-slate-400 mb-4">Try adjusting or clearing your search</p>
-      <Button variant="outline" size="sm" onClick={onClear}>Clear Filters</Button>
+      <p className="text-sm font-medium text-slate-600 mb-1">{t.dashboard.filterEmptyTitle}</p>
+      <p className="text-xs text-slate-400 mb-4">{t.dashboard.filterEmptyDesc}</p>
+      <Button variant="outline" size="sm" onClick={onClear}>{t.dashboard.clearFilters}</Button>
     </Card>
   );
 }
 
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+function ErrorState({ message, onRetry, t }: { message: string; onRetry: () => void; t: DashboardDict }) {
   return (
     <Card className="flex flex-col items-center justify-center py-14 text-center border-red-100 bg-white">
       <IconAlertTriangle className="h-10 w-10 text-red-400 mb-3" stroke={1.5} />
-      <p className="text-sm font-medium text-red-600 mb-1">Something went wrong</p>
+      <p className="text-sm font-medium text-red-600 mb-1">{t.dashboard.errorTitle}</p>
       <p className="text-xs text-slate-400 mb-4">{message}</p>
       <Button variant="outline" size="sm" onClick={onRetry}>
         <IconRefresh className="mr-2 h-3.5 w-3.5" />
-        Try Again
+        {t.dashboard.tryAgain}
       </Button>
     </Card>
   );
 }
 
-function SetupNeededCard() {
+function SetupNeededCard({ t }: { t: DashboardDict }) {
   const [loading, setLoading] = useState(false);
 
   const handleSetup = async () => {
@@ -91,29 +93,29 @@ function SetupNeededCard() {
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 mb-5">
         <IconSettings className="h-8 w-8 text-slate-400" stroke={1.5} />
       </div>
-      <h3 className="font-heading text-lg font-semibold mb-1">Account not set up</h3>
+      <h3 className="font-heading text-lg font-semibold mb-1">{t.dashboard.setupTitle}</h3>
       <p className="text-sm text-slate-500 mb-6 max-w-sm">
-        Your account is not linked to an organization yet. Click below to complete setup.
+        {t.dashboard.setupDesc}
       </p>
       <Button
         onClick={handleSetup}
         disabled={loading}
         className="bg-cf-primary hover:bg-cf-primary/90 text-white"
       >
-        {loading ? "Setting up..." : "Complete Setup"}
+        {loading ? "..." : t.dashboard.completeSetup}
       </Button>
     </Card>
   );
 }
 
 function Pagination({
-  page, pages, total, onPage,
-}: { page: number; pages: number; total: number; onPage: (p: number) => void }) {
+  page, pages, total, onPage, t
+}: { page: number; pages: number; total: number; onPage: (p: number) => void; t: DashboardDict }) {
   if (pages <= 1) return null;
   return (
     <div className="flex items-center justify-between pt-2">
       <p className="text-xs text-slate-500">
-        Page {page} of {pages} &mdash; {total.toLocaleString()} deliveries
+        {t.dashboard.pageOf.replace("{page}", String(page)).replace("{pages}", String(pages))} &mdash; {t.dashboard.deliveryCount.replace("{total}", total.toLocaleString())}
       </p>
       <div className="flex items-center gap-1">
         <Button
@@ -158,6 +160,7 @@ function Pagination({
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export function DeliveriesSection() {
+  const { t } = useLanguage();
   const [deliveries,  setDeliveries]  = useState<ApiDelivery[]>([]);
   const [total,       setTotal]       = useState(0);
   const [pages,       setPages]       = useState(1);
@@ -225,7 +228,7 @@ export function DeliveriesSection() {
 
   const hasActiveFilters = Object.values(filters).some(Boolean);
 
-  if (setupNeeded) return <SetupNeededCard />;
+  if (setupNeeded) return <SetupNeededCard t={t} />;
 
   return (
     <div className="space-y-5">
@@ -239,7 +242,7 @@ export function DeliveriesSection() {
             {loading ? "…" : total.toLocaleString()}
           </span>
           <span className="text-sm text-slate-400">
-            {loading ? "Loading…" : total === 1 ? "delivery" : "deliveries"}
+            {loading ? t.deliveries.loading : t.dashboard.deliveryCount.replace("{total}", "")}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -249,7 +252,7 @@ export function DeliveriesSection() {
             className="h-9 w-9 border-slate-200"
             onClick={() => { fetchDeliveries(filters, page); setStatsVersion((v) => v + 1); }}
             disabled={loading}
-            title="Refresh"
+            title={t.deliveries.refresh}
           >
             <IconRefresh className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
@@ -258,7 +261,7 @@ export function DeliveriesSection() {
             className="bg-cf-primary hover:bg-cf-primary/90 text-white h-9 shadow-sm"
           >
             <IconPlus className="mr-2 h-4 w-4" />
-            New Delivery
+            {t.deliveries.newDelivery}
           </Button>
         </div>
       </div>
@@ -268,15 +271,15 @@ export function DeliveriesSection() {
       {loading ? (
         <DeliveryTableSkeleton />
       ) : error ? (
-        <ErrorState message={error} onRetry={() => fetchDeliveries(filters, page)} />
+        <ErrorState message={error} onRetry={() => fetchDeliveries(filters, page)} t={t} />
       ) : deliveries.length === 0 && !hasActiveFilters ? (
-        <EmptyState onCreate={() => setCreateOpen(true)} />
+        <EmptyState onCreate={() => setCreateOpen(true)} t={t} />
       ) : deliveries.length === 0 ? (
-        <FilteredEmptyState onClear={() => setFilters(DEFAULT_FILTERS)} />
+        <FilteredEmptyState onClear={() => setFilters(DEFAULT_FILTERS)} t={t} />
       ) : (
         <>
           <DeliveryTable deliveries={deliveries} onDeliveryUpdated={handleDeliveryUpdated} />
-          <Pagination page={page} pages={pages} total={total} onPage={setPage} />
+          <Pagination page={page} pages={pages} total={total} onPage={setPage} t={t} />
         </>
       )}
 

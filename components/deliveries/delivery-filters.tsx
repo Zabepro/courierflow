@@ -5,17 +5,18 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { IconSearch, IconX, IconFilter } from "@tabler/icons-react";
+import { useLanguage } from "@/lib/i18n/context";
 import type { FilterState } from "./types";
 
 const STATUS_OPTIONS = [
-  { value: "PENDING",    label: "Pending" },
-  { value: "ASSIGNED",   label: "Assigned" },
-  { value: "PICKED_UP",  label: "Picked Up" },
-  { value: "IN_TRANSIT", label: "In Transit" },
-  { value: "DELIVERED",  label: "Delivered" },
-  { value: "FAILED",     label: "Failed" },
-  { value: "CANCELLED",  label: "Cancelled" },
-];
+  "PENDING",
+  "ASSIGNED",
+  "PICKED_UP",
+  "IN_TRANSIT",
+  "DELIVERED",
+  "FAILED",
+  "CANCELLED",
+] as const;
 
 const inputCls =
   "h-9 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 " +
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export function DeliveryFilters({ filters, onChange }: Props) {
+  const { t } = useLanguage();
   const hasActive = Object.values(filters).some(Boolean);
 
   return (
@@ -35,7 +37,7 @@ export function DeliveryFilters({ filters, onChange }: Props) {
       <div className="flex flex-wrap gap-3 items-center">
         <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
           <IconFilter className="h-3.5 w-3.5" stroke={2} />
-          Filter
+          {t.deliveries.filter}
         </div>
 
         {/* Tracking code search */}
@@ -43,7 +45,7 @@ export function DeliveryFilters({ filters, onChange }: Props) {
           <IconSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" stroke={1.8} />
           <input
             type="text"
-            placeholder="Tracking code…"
+            placeholder={t.deliveries.searchCode}
             value={filters.trackingCode}
             onChange={(e) => onChange({ ...filters, trackingCode: e.target.value })}
             className={`${inputCls} w-[190px] pl-8 pr-3`}
@@ -56,12 +58,12 @@ export function DeliveryFilters({ filters, onChange }: Props) {
           onValueChange={(v) => onChange({ ...filters, status: v && v !== "_all" ? v : "" })}
         >
           <SelectTrigger className={`${inputCls} w-[170px] px-3`}>
-            <SelectValue placeholder="All statuses" />
+            <SelectValue placeholder={t.deliveries.allStatuses} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="_all">All statuses</SelectItem>
-            {STATUS_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            <SelectItem value="_all">{t.deliveries.allStatuses}</SelectItem>
+            {STATUS_OPTIONS.map((val) => (
+              <SelectItem key={val} value={val}>{t.deliveries.statuses[val]}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -94,7 +96,7 @@ export function DeliveryFilters({ filters, onChange }: Props) {
             className="h-9 text-slate-400 hover:text-slate-700 hover:bg-slate-100 px-3"
           >
             <IconX className="mr-1.5 h-3.5 w-3.5" />
-            Clear
+            {t.deliveries.clear}
           </Button>
         )}
       </div>

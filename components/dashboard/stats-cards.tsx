@@ -5,6 +5,7 @@ import { IconPackage, IconTruck, IconClock, IconCurrencyDollar } from "@tabler/i
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatTZS } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/context";
 
 type Stats = {
   total:          number;
@@ -57,6 +58,7 @@ function StatsSkeleton() {
 export function StatsCards() {
   const [stats, setStats]   = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetch("/api/stats")
@@ -72,30 +74,30 @@ export function StatsCards() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard
-        label="Total Deliveries"
+        label={t.stats.totalDeliveries}
         value={stats.total.toLocaleString()}
-        sub={`${stats.deliveredToday} delivered today`}
+        sub={`${stats.deliveredToday} ${t.stats.deliveredToday}`}
         icon={IconPackage}
         color="bg-cf-primary"
       />
       <StatCard
-        label="Active"
+        label={t.stats.active}
         value={stats.active}
-        sub="Assigned, picked up, in transit"
+        sub={t.stats.activeSub}
         icon={IconTruck}
         color="bg-orange-500"
       />
       <StatCard
-        label="Pending Assignment"
+        label={t.stats.pendingAssignment}
         value={stats.pending}
-        sub={stats.pending > 0 ? "Need a driver" : "All assigned"}
+        sub={stats.pending > 0 ? t.stats.needDriver : t.stats.allAssigned}
         icon={IconClock}
         color={stats.pending > 0 ? "bg-amber-500" : "bg-slate-400"}
       />
       <StatCard
-        label="Revenue This Month"
+        label={t.stats.revenueMonth}
         value={formatTZS(String(stats.revenueMonth))}
-        sub="Sum of delivery fees"
+        sub={t.stats.revenueSub}
         icon={IconCurrencyDollar}
         color="bg-green-600"
       />

@@ -15,6 +15,7 @@ import { AssignDriverDialog }   from "./assign-driver-dialog";
 import { DeliveryDetailSheet }  from "./delivery-detail-sheet";
 import { formatTZS } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/context";
 import type { ApiDelivery } from "./types";
 
 const TERMINAL = new Set(["DELIVERED", "FAILED", "CANCELLED"]);
@@ -36,6 +37,7 @@ interface Props {
 }
 
 export function DeliveryTable({ deliveries, onDeliveryUpdated }: Props) {
+  const { t } = useLanguage();
   const [assignTarget, setAssignTarget] = useState<ApiDelivery | null>(null);
   const [detailTarget, setDetailTarget] = useState<ApiDelivery | null>(null);
   const [copiedId,     setCopiedId]     = useState<string | null>(null);
@@ -45,7 +47,7 @@ export function DeliveryTable({ deliveries, onDeliveryUpdated }: Props) {
     const url = `${window.location.origin}/track/${d.trackingCode}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopiedId(d.id);
-      toast.success("Tracking link copied!");
+      toast.success(t.table.linkCopied);
       setTimeout(() => setCopiedId(null), 2000);
     });
   }
@@ -56,13 +58,13 @@ export function DeliveryTable({ deliveries, onDeliveryUpdated }: Props) {
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50/80 hover:bg-slate-50 border-b border-slate-100">
-              <TableHead className="pl-5 py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500">Tracking</TableHead>
-              <TableHead className="py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500">Recipient</TableHead>
-              <TableHead className="py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500 hidden md:table-cell">Address</TableHead>
-              <TableHead className="py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500">Status</TableHead>
-              <TableHead className="py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500 hidden lg:table-cell">Driver</TableHead>
-              <TableHead className="py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500 hidden lg:table-cell">Fee</TableHead>
-              <TableHead className="py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500 hidden xl:table-cell">Date</TableHead>
+              <TableHead className="pl-5 py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500">{t.table.tracking}</TableHead>
+              <TableHead className="py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500">{t.table.recipient}</TableHead>
+              <TableHead className="py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500 hidden md:table-cell">{t.table.address}</TableHead>
+              <TableHead className="py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500">{t.table.status}</TableHead>
+              <TableHead className="py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500 hidden lg:table-cell">{t.table.driver}</TableHead>
+              <TableHead className="py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500 hidden lg:table-cell">{t.table.fee}</TableHead>
+              <TableHead className="py-3.5 font-bold text-[11px] uppercase tracking-wider text-slate-500 hidden xl:table-cell">{t.table.date}</TableHead>
               <TableHead className="w-[120px]" />
             </TableRow>
           </TableHeader>
@@ -149,7 +151,7 @@ export function DeliveryTable({ deliveries, onDeliveryUpdated }: Props) {
                     <Button
                       size="icon" variant="ghost"
                       className="h-8 w-8 text-slate-400 hover:text-cf-primary hover:bg-cf-primary/8 rounded-lg"
-                      title="View details"
+                      title={t.table.viewDetails}
                       onClick={(e) => { e.stopPropagation(); setDetailTarget(d); }}
                     >
                       <IconEye className="h-4 w-4" stroke={1.8} />
@@ -157,7 +159,7 @@ export function DeliveryTable({ deliveries, onDeliveryUpdated }: Props) {
                     <Button
                       size="icon" variant="ghost"
                       className="h-8 w-8 text-slate-400 hover:text-cf-primary hover:bg-cf-primary/8 rounded-lg"
-                      title="Copy tracking link"
+                      title={t.table.copyLink}
                       onClick={(e) => copyLink(e, d)}
                     >
                       {copiedId === d.id
@@ -169,7 +171,7 @@ export function DeliveryTable({ deliveries, onDeliveryUpdated }: Props) {
                       <Button
                         size="icon" variant="ghost"
                         className="h-8 w-8 text-slate-400 hover:text-cf-primary hover:bg-cf-primary/8 rounded-lg"
-                        title="Assign driver"
+                        title={t.table.assignDriver}
                         onClick={(e) => { e.stopPropagation(); setAssignTarget(d); }}
                       >
                         <IconUserPlus className="h-4 w-4" stroke={1.8} />

@@ -3,9 +3,11 @@
 import { IconTruck } from "@tabler/icons-react";
 import { navForRole } from "./nav-config";
 import { NavItem } from "./nav-item";
+import { useLanguage } from "@/lib/i18n/context";
 
 export function Sidebar({ role }: { role: string }) {
-  const { main, bottom } = navForRole(role);
+  const { t } = useLanguage();
+  const { main, bottom } = navForRole(role, t);
 
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r bg-white">
@@ -38,7 +40,7 @@ export function Sidebar({ role }: { role: string }) {
           {/* Label */}
           <div className="px-4 pb-1">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              System
+              {t.nav.system}
             </p>
           </div>
 

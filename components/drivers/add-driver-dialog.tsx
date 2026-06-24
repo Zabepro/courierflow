@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/context";
 import type { DriverRow } from "./types";
 
 type FormData = { name: string; phone: string; email: string };
@@ -32,6 +33,9 @@ interface Props {
 }
 
 export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
+  const { lang, t } = useLanguage();
+  const d = t.drivers.addDialog;
+
   const [form, setForm]         = useState<FormData>(DEFAULT);
   const [errors, setErrors]     = useState<FieldErrors | null>(null);
   const [submitting, setSubmit] = useState(false);
@@ -103,10 +107,10 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
             </div>
             <div>
               <DialogTitle className="font-heading text-xl font-bold text-slate-800 leading-tight">
-                Add Driver
+                {d.title}
               </DialogTitle>
               <DialogDescription className="text-[13px] text-slate-500 mt-0.5">
-                We&apos;ll text them an invite link — they sign up and they&apos;re in.
+                {d.subtitle}
               </DialogDescription>
             </div>
           </div>
@@ -118,9 +122,13 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
               <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/15">
                 <IconCircleCheck className="h-6 w-6 text-green-600" stroke={2} />
               </div>
-              <h3 className="font-heading text-base font-bold text-slate-800">{invite.name} invited</h3>
+              <h3 className="font-heading text-base font-bold text-slate-800">
+                {invite.name} {lang === "sw" ? "amealikwa" : "invited"}
+              </h3>
               <p className="mt-1 text-sm text-slate-500">
-                An SMS with the invite link was sent to their phone. You can also share it manually:
+                {lang === "sw"
+                  ? "Ujumbe mfupi (SMS) wenye kiungo umetumwa. Unaweza pia kumtumia wewe mwenyewe:"
+                  : "An SMS with the invite link was sent to their phone. You can also share it manually:"}
               </p>
             </div>
 
@@ -140,7 +148,9 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
                   copied ? "bg-green-100 text-green-700" : "bg-cf-primary text-white hover:bg-cf-primary/90",
                 )}
               >
-                {copied ? <><IconCircleCheck className="h-3.5 w-3.5" stroke={2.5} /> Copied</> : <><IconCopy className="h-3.5 w-3.5" stroke={2} /> Copy</>}
+                {copied 
+                  ? <><IconCircleCheck className="h-3.5 w-3.5" stroke={2.5} /> {t.drivers.card.copied}</> 
+                  : <><IconCopy className="h-3.5 w-3.5" stroke={2} /> {lang === "sw" ? "Nakili" : "Copy"}</>}
               </button>
             </div>
 
@@ -148,7 +158,7 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
               onClick={close}
               className="mt-5 w-full bg-cf-primary hover:bg-cf-primary/90 text-white h-10 font-semibold shadow-sm"
             >
-              Done
+              {lang === "sw" ? "Tayari" : "Done"}
             </Button>
           </div>
         ) : (
@@ -156,11 +166,11 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
           <div className="px-6 py-5 space-y-4">
             {/* Name */}
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Full name</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{d.fullName}</label>
               <div className="relative mt-1.5">
                 <IconUser className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                 <input
-                  placeholder="e.g. Juma Hassan"
+                  placeholder={d.namePlaceholder}
                   value={form.name}
                   onChange={(e) => set("name", e.target.value)}
                   className={cn(inputBase, hasErr("name") ? inputErr : inputNormal)}
@@ -171,7 +181,7 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
 
             {/* Phone */}
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Phone</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{d.phone}</label>
               <div className="relative mt-1.5">
                 <IconPhone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                 <input
@@ -186,12 +196,12 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
 
             {/* Email */}
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Email</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{d.email}</label>
               <div className="relative mt-1.5">
                 <IconMail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                 <input
                   type="email"
-                  placeholder="driver@example.com"
+                  placeholder={d.emailPlaceholder}
                   value={form.email}
                   onChange={(e) => set("email", e.target.value)}
                   className={cn(inputBase, hasErr("email") ? inputErr : inputNormal)}
@@ -208,16 +218,16 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
               className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:bg-slate-200 transition-colors"
             >
               <IconX className="h-4 w-4" />
-              Cancel
+              {d.cancel}
             </button>
             <Button
               type="submit"
               disabled={submitting}
               className="bg-cf-primary hover:bg-cf-primary/90 text-white h-10 px-6 font-semibold shadow-sm"
             >
-              {submitting ? "Adding…" : (
+              {submitting ? (lang === "sw" ? "Inaongeza..." : "Adding…") : (
                 <>
-                  Add Driver
+                  {d.addBtn}
                   <IconArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}

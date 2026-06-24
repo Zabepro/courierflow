@@ -5,6 +5,7 @@ import {
   IconPackage, IconTruckDelivery, IconClockHour4, IconCircleCheck,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/context";
 
 type Stats = {
   total:          number;
@@ -14,23 +15,15 @@ type Stats = {
   revenueMonth:   number;
 };
 
-type CardDef = {
-  key:   keyof Stats;
-  label: string;
-  hint:  string;
-  icon:  typeof IconPackage;
-  tint:  string;   // icon bg + text
-  bar:   string;   // accent bar
-};
-
-const CARDS: CardDef[] = [
-  { key: "total",          label: "Total",           hint: "All deliveries",      icon: IconPackage,        tint: "bg-cf-primary/10 text-cf-primary", bar: "bg-cf-primary"  },
-  { key: "active",         label: "On the Road",     hint: "Assigned · in transit", icon: IconTruckDelivery, tint: "bg-orange-50 text-orange-500",     bar: "bg-orange-400"  },
-  { key: "pending",        label: "Pending",         hint: "Awaiting assignment", icon: IconClockHour4,     tint: "bg-amber-50 text-amber-500",       bar: "bg-amber-400"   },
-  { key: "deliveredToday", label: "Delivered Today", hint: "Completed today",     icon: IconCircleCheck,    tint: "bg-emerald-50 text-emerald-600",   bar: "bg-emerald-500" },
-];
+const CARDS = [
+  { key: "total",          icon: IconPackage,        tint: "bg-cf-primary/10 text-cf-primary", bar: "bg-cf-primary"  },
+  { key: "active",         icon: IconTruckDelivery, tint: "bg-orange-50 text-orange-500",     bar: "bg-orange-400"  },
+  { key: "pending",        icon: IconClockHour4,     tint: "bg-amber-50 text-amber-500",       bar: "bg-amber-400"   },
+  { key: "deliveredToday", icon: IconCircleCheck,    tint: "bg-emerald-50 text-emerald-600",   bar: "bg-emerald-500" },
+] as const;
 
 export function DeliveryStats({ refreshSignal = 0 }: { refreshSignal?: number }) {
+  const { t } = useLanguage();
   const [stats, setStats]     = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -53,11 +46,19 @@ export function DeliveryStats({ refreshSignal = 0 }: { refreshSignal?: number })
 
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-      {CARDS.map(({ key, label, hint, icon: Icon, tint, bar }) => (
-        <div
-          key={key}
-          className="relative overflow-hidden rounded-xl bg-white p-5 ring-1 ring-slate-100 shadow-sm"
-        >
+      {CARDS.map(({ key, icon: Icon, tint, bar }) => {
+        let label = "";
+        let hint = "";
+        if (key === "total") { label = t.deliveries.stats.total; hint = t.deliveries.stats.allDeliveries; }
+        else if (key === "active") { label = t.deliveries.stats.onTheRoad; hint = t.deliveries.stats.assignedInTransit; }
+        else if (key === "pending") { label = t.deliveries.stats.pending; hint = t.deliveries.stats.awaitingAssignment; }
+        else if (key === "deliveredToday") { label = t.deliveries.stats.deliveredToday; hint = t.deliveries.stats.completedToday; }
+        
+        return (
+          <div
+            key={key}
+            className="relative overflow-hidden rounded-xl bg-white p-5 ring-1 ring-slate-100 shadow-sm"
+          >
           <div className="flex items-start justify-between">
             <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{label}</p>
@@ -76,7 +77,8 @@ export function DeliveryStats({ refreshSignal = 0 }: { refreshSignal?: number })
           </div>
           <div className={cn("absolute inset-x-0 bottom-0 h-0.5", bar)} />
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

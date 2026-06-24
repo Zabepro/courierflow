@@ -2,13 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { IconMenu2, IconX, IconTruck } from "@tabler/icons-react";
+import { usePathname } from "next/navigation";
 import { navForRole } from "./nav-config";
 import { NavItem } from "./nav-item";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/context";
 
 export function MobileNav({ role }: { role: string }) {
   const [open, setOpen] = useState(false);
-  const { main, bottom } = navForRole(role);
+  const pathname = usePathname();
+  const { t } = useLanguage();
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   /* Close on Escape + lock body scroll while the drawer is open */
   useEffect(() => {
@@ -24,6 +31,7 @@ export function MobileNav({ role }: { role: string }) {
   }, [open]);
 
   const close = () => setOpen(false);
+  const { main, bottom } = navForRole(role, t);
 
   return (
     <div className="lg:hidden">
@@ -85,14 +93,20 @@ export function MobileNav({ role }: { role: string }) {
               </div>
             </div>
           ))}
-        </nav>
 
-        {/* Bottom */}
-        {bottom.length > 0 && (
-          <div className="space-y-0.5 border-t p-3">
-            {bottom.map((item) => <NavItem key={item.href} {...item} onNavigate={close} />)}
-          </div>
-        )}
+          {bottom.length > 0 && (
+            <>
+              <div className="px-3 pb-1 pt-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  {t.nav.system}
+                </p>
+              </div>
+              <div className="space-y-0.5 px-3 pb-6">
+                {bottom.map((item) => <NavItem key={item.href} {...item} onNavigate={close} />)}
+              </div>
+            </>
+          )}
+        </nav>
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/context";
 
 export type OrgData = {
   name: string;
@@ -45,6 +46,8 @@ export function OrgSettingsForm({ org, canEdit }: Props) {
   });
   const [errors, setErrors]     = useState<FieldErrors | null>(null);
   const [submitting, setSubmit] = useState(false);
+  const { t } = useLanguage();
+  const s = t.settings;
 
   function set(k: keyof FormState, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
@@ -117,10 +120,10 @@ export function OrgSettingsForm({ org, canEdit }: Props) {
 
       <CardHeader className="pb-5 border-b border-slate-100">
         <CardTitle className="font-heading text-base font-semibold text-slate-800">
-          Organization Profile
+          {s.orgProfile}
         </CardTitle>
         <CardDescription className="text-sm mt-1">
-          This information appears on tracking pages and SMS alerts to customers.
+          {s.orgProfileDesc}
         </CardDescription>
       </CardHeader>
 
@@ -128,20 +131,20 @@ export function OrgSettingsForm({ org, canEdit }: Props) {
         {!canEdit && (
           <div className="mb-5 flex items-center gap-2.5 rounded-xl bg-slate-50 ring-1 ring-slate-200 px-4 py-3 text-xs text-slate-500">
             <IconLock className="h-4 w-4 shrink-0 text-slate-400" stroke={1.8} />
-            Only organization admins can edit these settings.
+            {s.adminOnly}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {field("name", "Organization name", IconBuildingStore, "e.g. Dar Express Couriers")}
+          {field("name", s.orgName, IconBuildingStore, "e.g. Dar Express Couriers")}
 
           <div className="grid gap-5 sm:grid-cols-2">
-            {field("phone", "Phone (for SOS alerts)", IconPhone, "+255 7XX XXX XXX", "tel")}
-            {field("city",  "City",                   IconBuildingSkyscraper, "Dar es Salaam")}
+            {field("phone", s.phone, IconPhone, "+255 7XX XXX XXX", "tel")}
+            {field("city",  s.city,  IconBuildingSkyscraper, "Dar es Salaam")}
           </div>
 
-          {field("address", "Address", IconMapPin, "Street, building, area")}
-          {field("country", "Country", IconWorld,  "Tanzania")}
+          {field("address", s.address, IconMapPin, "Street, building, area")}
+          {field("country", s.country, IconWorld,  "Tanzania")}
 
           {canEdit && (
             <div className="flex justify-end pt-4">
@@ -151,7 +154,7 @@ export function OrgSettingsForm({ org, canEdit }: Props) {
                 className="bg-cf-primary hover:bg-cf-primary/90 text-white h-10 px-6 font-semibold shadow-sm"
               >
                 <IconDeviceFloppy className="mr-2 h-4 w-4" stroke={2} />
-                {submitting ? "Saving…" : "Save Changes"}
+                {submitting ? s.saving : s.saveChanges}
               </Button>
             </div>
           )}

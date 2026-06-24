@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { PostHogProvider, PostHogIdentify } from "@/lib/posthog/provider";
 import { PostHogPageView } from "@/lib/posthog/pageview";
+import { LanguageProvider } from "@/lib/i18n/context";
 import { Suspense } from "react";
 import "./globals.css";
 
@@ -60,8 +61,10 @@ export default function RootLayout({
             <PostHogIdentify />
             <Suspense><PostHogPageView /></Suspense>
             <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
-              {children}
-              <Toaster richColors position="top-right" />
+              <LanguageProvider>
+                {children}
+                <Toaster richColors position="top-right" />
+              </LanguageProvider>
             </ThemeProvider>
           </PostHogProvider>
         </body>

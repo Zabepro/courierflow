@@ -1,28 +1,37 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { IconTruck } from "@tabler/icons-react";
 import { ThemeToggle } from "./theme-toggle";
+import { LanguageToggle } from "./language-toggle";
 import { MobileNav } from "./mobile-nav";
-
-const TITLES: Record<string, string> = {
-  "/dashboard":             "Overview",
-  "/dashboard/deliveries":  "Deliveries",
-  "/dashboard/drivers":     "Drivers",
-  "/dashboard/map":         "Fleet Map",
-  "/dashboard/reports":     "Reports",
-  "/dashboard/driver":      "Driver Portal",
-  "/dashboard/settings":    "Settings",
-};
+import { useLanguage } from "@/lib/i18n/context";
 
 export function TopBar({ role }: { role: string }) {
   const pathname = usePathname();
-  const title    = TITLES[pathname] ?? "Dashboard";
+  const { t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => setMounted(true), []);
+  
+  // Use translation mapping
+  const TITLES: Record<string, string> = {
+    "/dashboard":             t.nav.overview,
+    "/dashboard/deliveries":  t.nav.deliveries,
+    "/dashboard/drivers":     t.nav.drivers,
+    "/dashboard/map":         t.nav.fleetMap,
+    "/dashboard/reports":     t.nav.reports,
+    "/dashboard/driver":      t.nav.driverPortal,
+    "/dashboard/settings":    t.nav.settings,
+  };
+
+  const title = TITLES[pathname] ?? t.topbar.titleFallback;
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b bg-white px-6">
+    <header suppressHydrationWarning className="flex h-14 shrink-0 items-center justify-between border-b bg-white px-6">
       {/* Mobile: show logo (sidebar is hidden); Desktop: show page title */}
       <div className="flex items-center gap-2">
         <MobileNav role={role} />
@@ -39,8 +48,9 @@ export function TopBar({ role }: { role: string }) {
       </div>
 
       <div className="flex items-center gap-3">
+        <LanguageToggle />
         <ThemeToggle />
-        <UserButton />
+        {mounted ? <UserButton /> : <div className="h-7 w-7 rounded-full bg-slate-200" aria-hidden="true" />}
       </div>
     </header>
   );

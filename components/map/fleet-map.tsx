@@ -8,19 +8,27 @@ import {
   IconInfoCircle,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/context";
 
 /* Leaflet must not run on server */
 const FleetMapInner = dynamic(() => import("./fleet-map-inner"), {
   ssr:     false,
-  loading: () => (
+  loading: () => {
+    return <LoadingMapPlaceholder />;
+  },
+});
+
+function LoadingMapPlaceholder() {
+  const { t } = useLanguage();
+  return (
     <div className="flex h-full items-center justify-center bg-slate-100">
       <div className="flex flex-col items-center gap-3">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-cf-primary border-t-transparent" />
-        <p className="text-sm font-medium text-slate-500">Loading map…</p>
+        <p className="text-sm font-medium text-slate-500">{t.map.loadingMap}</p>
       </div>
     </div>
-  ),
-});
+  );
+}
 
 export type DriverPin = {
   deliveryId:    string;
@@ -54,6 +62,9 @@ function initials(name: string): string {
 }
 
 export function FleetMap() {
+  const { t } = useLanguage();
+  const m = t.map;
+
   const [pins, setPins]             = useState<DriverPin[]>([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(false);
@@ -149,29 +160,29 @@ export function FleetMap() {
       <div className="absolute top-3 left-1/2 z-[1000] -translate-x-1/2">
         <div className="flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/95 shadow-lg backdrop-blur-sm px-4 py-2.5">
           <IconTruck className="h-4 w-4 text-cf-primary shrink-0" stroke={2} />
-          <span className="text-sm font-bold text-slate-800">Fleet Live</span>
+          <span className="text-sm font-bold text-slate-800">{m.fleetLive}</span>
           <div className="mx-2 h-4 w-px bg-slate-200" />
 
           {/* Stats pills */}
           <div className="flex items-center gap-1.5">
             <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {liveCount} live
+              {liveCount} {m.live}
             </span>
             {staleCount > 0 && (
               <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700">
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                {staleCount} stale
+                {staleCount} {m.stale}
               </span>
             )}
             {noGpsCount > 0 && (
               <span className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-500">
                 <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                {noGpsCount} no GPS
+                {noGpsCount} {m.noGps}
               </span>
             )}
             {totalActive === 0 && !loading && (
-              <span className="text-xs text-slate-400 font-medium">No active deliveries</span>
+              <span className="text-xs text-slate-400 font-medium">{m.noActive}</span>
             )}
           </div>
 
@@ -185,7 +196,7 @@ export function FleetMap() {
               <IconWifi className="h-3.5 w-3.5 text-emerald-500" stroke={2} />
             )}
             <span className="text-[11px] text-slate-400 tabular-nums">
-              {secondsAgo !== null ? `${secondsAgo}s ago` : "—"}
+              {secondsAgo !== null ? `${secondsAgo}s ${m.ago}` : "—"}
             </span>
             <button
               onClick={() => void fetchPins()}
@@ -207,7 +218,7 @@ export function FleetMap() {
           title="Fit all drivers in view"
         >
           <IconFocusCentered className="h-4 w-4" stroke={2} />
-          Fit all
+          {m.fitAll}
         </button>
         {!sidebarOpen && totalActive > 0 && (
           <button
@@ -216,7 +227,7 @@ export function FleetMap() {
             title="Show driver list"
           >
             <IconChevronLeft className="h-4 w-4" stroke={2} />
-            Drivers
+            {m.drivers}
           </button>
         )}
       </div>
@@ -230,12 +241,12 @@ export function FleetMap() {
             title="Show legend"
           >
             <IconInfoCircle className="h-4 w-4 text-cf-primary" stroke={2} />
-            Legend
+            {m.legend}
           </button>
         ) : (
         <div className="rounded-xl border border-slate-200/80 bg-white/95 shadow-lg backdrop-blur-sm px-4 py-3 space-y-2">
           <div className="flex items-center justify-between gap-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Legend</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{m.legend}</p>
             <button
               onClick={() => setLegendOpen(false)}
               className="rounded p-0.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
@@ -247,23 +258,23 @@ export function FleetMap() {
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-500 text-[8px] font-bold text-white shrink-0">AB</span>
-              <span className="text-xs text-slate-600 font-medium">Live · &lt; 1 min</span>
+              <span className="text-xs text-slate-600 font-medium">{m.liveDesc}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[8px] font-bold text-white shrink-0">AB</span>
-              <span className="text-xs text-slate-600 font-medium">Stale · 1–5 min</span>
+              <span className="text-xs text-slate-600 font-medium">{m.staleDesc}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-400 text-[8px] font-bold text-white shrink-0">AB</span>
-              <span className="text-xs text-slate-600 font-medium">Offline · &gt; 5 min</span>
+              <span className="text-xs text-slate-600 font-medium">{m.offlineDesc}</span>
             </div>
           </div>
           <div className="border-t border-slate-100 pt-2 space-y-1">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Status</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{m.status}</p>
             {[
-              { dot: "bg-blue-500",   label: "Assigned"   },
-              { dot: "bg-amber-500",  label: "Picked Up"  },
-              { dot: "bg-orange-500", label: "In Transit" },
+              { dot: "bg-blue-500",   label: m.assigned   },
+              { dot: "bg-amber-500",  label: m.pickedUp  },
+              { dot: "bg-orange-500", label: m.inTransit },
             ].map(({ dot, label }) => (
               <div key={label} className="flex items-center gap-2">
                 <span className={cn("h-2 w-2 rounded-full shrink-0", dot)} />
@@ -282,7 +293,7 @@ export function FleetMap() {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
               <p className="text-xs font-bold text-slate-700">
-                {totalActive} Active {totalActive === 1 ? "Delivery" : "Deliveries"}
+                {totalActive} {totalActive === 1 ? m.activeDelivery : m.activeDeliveries}
               </p>
               <button
                 onClick={() => setSidebarOpen(false)}
@@ -300,7 +311,7 @@ export function FleetMap() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search driver, code, city…"
+                  placeholder={m.search}
                   className="w-full rounded-lg border border-slate-200 bg-slate-50/60 py-1.5 pl-8 pr-7 text-xs text-slate-700 placeholder:text-slate-400 outline-none transition-colors focus:border-cf-primary/40 focus:bg-white"
                 />
                 {query && (
@@ -319,7 +330,7 @@ export function FleetMap() {
               {filtered.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
                   <IconSearch className="h-6 w-6 text-slate-300" stroke={1.5} />
-                  <p className="text-xs font-medium text-slate-400">No drivers match “{query}”</p>
+                  <p className="text-xs font-medium text-slate-400">{m.noMatch} “{query}”</p>
                 </div>
               ) : (
                 filtered.map((pin) => {
@@ -361,7 +372,7 @@ export function FleetMap() {
                           <p className="truncate text-[10px] text-slate-400">{pin.recipientName}</p>
                           {pin.location && (
                             <p className="shrink-0 text-[10px] text-slate-400 tabular-nums">
-                              {Math.floor(secsAgo(pin.location.ts))}s ago
+                              {Math.floor(secsAgo(pin.location.ts))}s {m.ago}
                             </p>
                           )}
                         </div>
@@ -383,8 +394,8 @@ export function FleetMap() {
               <IconMapPinOff className="h-7 w-7 text-slate-400" stroke={1.5} />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-700">No active deliveries</p>
-              <p className="mt-1 text-xs text-slate-400">Drivers will appear here once a delivery is on the road.</p>
+              <p className="text-sm font-bold text-slate-700">{m.noActive}</p>
+              <p className="mt-1 text-xs text-slate-400">{m.noActiveDesc}</p>
             </div>
           </div>
         </div>
@@ -403,7 +414,7 @@ export function FleetMap() {
         <div className="absolute inset-0 z-[2000] flex items-center justify-center bg-slate-100/80 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-3">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-cf-primary border-t-transparent" />
-            <p className="text-sm font-medium text-slate-600">Loading fleet data…</p>
+            <p className="text-sm font-medium text-slate-600">{m.loadingData}</p>
           </div>
         </div>
       )}

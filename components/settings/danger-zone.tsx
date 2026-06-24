@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { IconAlertTriangle, IconTrash } from "@tabler/icons-react";
+import { useLanguage } from "@/lib/i18n/context";
 
 export function DangerZone({ orgName }: { orgName: string }) {
   const [open, setOpen]       = useState(false);
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
+  const s = t.settings;
 
   const match = confirm.trim().toLowerCase() === orgName.trim().toLowerCase();
 
@@ -42,16 +45,14 @@ export function DangerZone({ orgName }: { orgName: string }) {
           <IconAlertTriangle className="h-5 w-5" stroke={2} />
         </div>
         <div>
-          <h3 className="font-heading text-base font-bold text-red-700">Danger Zone</h3>
-          <p className="text-xs text-red-600/70">Irreversible — proceed with care</p>
+          <h3 className="font-heading text-base font-bold text-red-700">{s.dangerZone}</h3>
+          <p className="text-xs text-red-600/70">{s.irreversible}</p>
         </div>
       </div>
 
       <div className="px-5 py-5 sm:px-6">
         <p className="text-sm leading-relaxed text-slate-600">
-          Permanently delete <strong className="text-slate-700">all deliveries, drivers, payments,
-          GPS tracking, proof of delivery and SMS logs</strong> for this organisation. Your account
-          and organisation stay — only the operational data is cleared so you can start fresh.
+          {s.dangerZoneDesc}
         </p>
 
         {!open ? (
@@ -60,14 +61,13 @@ export function DangerZone({ orgName }: { orgName: string }) {
             className="mt-4 inline-flex items-center gap-2 rounded-xl border border-red-300 bg-white px-4 py-2.5 text-sm font-bold text-red-600 transition-colors hover:bg-red-50"
           >
             <IconTrash className="h-4 w-4" stroke={2} />
-            Reset all data
+            {s.resetData}
           </button>
         ) : (
           <div className="mt-4 space-y-3 rounded-xl p-4 ring-1 ring-red-300/50">
             <p className="text-sm font-medium text-slate-700">
-              Type{" "}
-              <span className="rounded bg-red-500/15 px-1.5 py-0.5 font-mono text-red-700">{orgName}</span>{" "}
-              to confirm:
+              {s.typeToConfirm}{" "}
+              <span className="rounded bg-red-500/15 px-1.5 py-0.5 font-mono text-red-700">{orgName}</span>
             </p>
             <input
               value={confirm}
@@ -82,14 +82,14 @@ export function DangerZone({ orgName }: { orgName: string }) {
                 disabled={loading}
                 className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"
               >
-                Cancel
+                {s.cancel}
               </button>
               <button
                 onClick={handleReset}
                 disabled={!match || loading}
                 className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {loading ? "Deleting…" : <><IconTrash className="h-4 w-4" stroke={2} /> Delete everything</>}
+                {loading ? s.deleting : <><IconTrash className="h-4 w-4" stroke={2} /> {s.deleteEverything}</>}
               </button>
             </div>
           </div>

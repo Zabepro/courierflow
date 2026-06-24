@@ -12,6 +12,7 @@ import {
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { AddressAutocomplete } from "./address-autocomplete";
+import { useLanguage } from "@/lib/i18n/context";
 import type { ApiDelivery } from "./types";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
@@ -36,14 +37,6 @@ const DEFAULT: FormData = {
   fee: "",            notes: "",
 };
 
-/* ── Priority config ─────────────────────────────────────────────────────── */
-
-const PRIORITIES: { value: Priority; label: string; dot: string; active: string }[] = [
-  { value: "LOW",    label: "Low",    dot: "bg-slate-400",  active: "border-slate-400  bg-slate-50  text-slate-700" },
-  { value: "NORMAL", label: "Normal", dot: "bg-blue-400",   active: "border-blue-400   bg-blue-50   text-blue-700"  },
-  { value: "HIGH",   label: "High",   dot: "bg-orange-500", active: "border-orange-400 bg-orange-50 text-orange-700"},
-  { value: "URGENT", label: "Urgent", dot: "bg-red-500",    active: "border-red-400    bg-red-50    text-red-700"   },
-];
 
 /* ── Shared input class ──────────────────────────────────────────────────── */
 
@@ -66,11 +59,21 @@ interface Props {
 /* ── Component ───────────────────────────────────────────────────────────── */
 
 export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
+  const { t } = useLanguage();
+  const d = t.deliveries.createDialog;
+
   const [form, setForm]         = useState<FormData>(DEFAULT);
   const [errors, setErrors]     = useState<FieldErrors | null>(null);
   const [submitting, setSubmit] = useState(false);
   const [locating, setLocating] = useState(false);
   const [geoMsg, setGeoMsg]     = useState<string | null>(null);
+
+  const PRIORITIES: { value: Priority; label: string; dot: string; active: string }[] = [
+    { value: "LOW",    label: d.priority.low,    dot: "bg-slate-400",  active: "border-slate-400  bg-slate-50  text-slate-700" },
+    { value: "NORMAL", label: d.priority.normal, dot: "bg-blue-400",   active: "border-blue-400   bg-blue-50   text-blue-700"  },
+    { value: "HIGH",   label: d.priority.high,   dot: "bg-orange-500", active: "border-orange-400 bg-orange-50 text-orange-700"},
+    { value: "URGENT", label: d.priority.urgent, dot: "bg-red-500",    active: "border-red-400    bg-red-50    text-red-700"   },
+  ];
 
   function set(k: keyof FormData, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
@@ -178,10 +181,15 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
             </div>
             <div>
               <DialogTitle className="font-heading text-xl font-bold text-slate-800 leading-tight">
-                New Delivery
+                {d.title}
               </DialogTitle>
               <DialogDescription className="text-[13px] text-slate-500 mt-0.5">
-                Fields marked <span className="text-red-500 font-medium">*</span> are required
+                {d.subtitle.split("*").map((part, i, arr) => (
+                  <span key={i}>
+                    {part}
+                    {i < arr.length - 1 && <span className="text-red-500 font-medium">*</span>}
+                  </span>
+                ))}
               </DialogDescription>
             </div>
           </div>
@@ -194,14 +202,14 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
             <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-slate-500" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Sender</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{d.sender}</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="relative">
                     <IconUser className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                     <input
-                      placeholder="Full name *"
+                      placeholder={d.fullName}
                       value={form.senderName}
                       onChange={(e) => set("senderName", e.target.value)}
                       className={cn(inputBase, "pl-8", hasErr("senderName") ? inputErr : inputNormal)}
@@ -228,14 +236,14 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
             <div className="rounded-xl border border-cf-primary/25 bg-cf-primary/5 p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-cf-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-cf-primary">Recipient</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-cf-primary">{d.recipient}</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="relative">
                     <IconUser className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-cf-primary/50 pointer-events-none" />
                     <input
-                      placeholder="Full name *"
+                      placeholder={d.fullName}
                       value={form.recipientName}
                       onChange={(e) => set("recipientName", e.target.value)}
                       className={cn(
@@ -266,7 +274,7 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
 
             {/* ── Route ───────────────────────────────────────────── */}
             <div className="space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Delivery Route</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{d.route}</p>
               <div className="relative">
                 {/* Connector line between dot and pin */}
                 <div className="absolute left-[13px] top-[38px] h-[calc(100%-58px)] w-px bg-slate-300 z-0" />
@@ -278,7 +286,7 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
                     </div>
                     <div className="flex-1">
                       <input
-                        placeholder="Pickup address *"
+                        placeholder={d.pickupAddress}
                         value={form.pickupAddress}
                         onChange={(e) => set("pickupAddress", e.target.value)}
                         className={cn(inputBase, hasErr("pickupAddress") ? inputErr : inputNormal)}
@@ -298,7 +306,7 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
                         ) : (
                           <>
                             <IconCurrentLocation className="h-3.5 w-3.5" stroke={2} />
-                            Use my current location
+                            {d.useCurrentLocation}
                           </>
                         )}
                       </button>
@@ -318,11 +326,11 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
                           setForm((f) => ({ ...f, deliveryAddress: addr, city: city || f.city }));
                           setErrors((e) => e ? { ...e, deliveryAddress: undefined } : null);
                         }}
-                        placeholder="Delivery address *"
+                        placeholder={d.deliveryAddress}
                         className={cn(inputBase, hasErr("deliveryAddress") ? inputErr : inputNormal)}
                       />
                       {errMsg("deliveryAddress")}
-                      <p className="mt-1 text-[11px] text-slate-400">Type an area, street or landmark — pick a suggestion.</p>
+                      <p className="mt-1 text-[11px] text-slate-400">{d.addressPlaceholder}</p>
                     </div>
                   </div>
                 </div>
@@ -331,7 +339,7 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
 
             {/* ── City ───────────────────────────────────────────── */}
             <div className="space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">City</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{d.city}</p>
               <input
                 placeholder="Dar es Salaam"
                 value={form.city}
@@ -342,7 +350,7 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
 
             {/* ── Priority ───────────────────────────────────────── */}
             <div className="space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Priority</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{d.priority.label}</p>
               <div className="grid grid-cols-4 gap-2">
                 {PRIORITIES.map((p) => (
                   <button
@@ -366,8 +374,8 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
             {/* ── Fee ────────────────────────────────────────────── */}
             <div className="space-y-2">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Delivery Fee{" "}
-                <span className="normal-case tracking-normal font-normal">(TZS, optional)</span>
+                {d.fee}{" "}
+                <span className="normal-case tracking-normal font-normal">{d.optional}</span>
               </p>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none select-none">
@@ -390,11 +398,11 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
               <div className="flex items-center gap-1.5">
                 <IconNotes className="h-3.5 w-3.5 text-slate-400" stroke={1.8} />
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Notes <span className="normal-case tracking-normal font-normal">(optional)</span>
+                  {d.notes} <span className="normal-case tracking-normal font-normal">{d.optional}</span>
                 </p>
               </div>
               <textarea
-                placeholder="Special instructions for the driver — fragile items, gate codes, etc."
+                placeholder={d.notesPlaceholder}
                 rows={2}
                 value={form.notes}
                 onChange={(e) => set("notes", e.target.value)}
@@ -412,16 +420,16 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
               className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:bg-slate-200 transition-colors"
             >
               <IconX className="h-4 w-4" />
-              Cancel
+              {d.cancel}
             </button>
             <Button
               type="submit"
               disabled={submitting}
               className="bg-cf-primary hover:bg-cf-primary/90 text-white h-10 px-6 font-semibold shadow-sm"
             >
-              {submitting ? "Creating…" : (
+              {submitting ? d.creating : (
                 <>
-                  Create Delivery
+                  {d.createBtn}
                   <IconArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}

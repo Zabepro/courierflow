@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddDriverDialog } from "./add-driver-dialog";
+import { useLanguage } from "@/lib/i18n/context";
+import { DashboardDict } from "@/lib/i18n/dictionary";
 import type { DriverRow } from "./types";
 
 function initials(name: string | null, email: string): string {
@@ -21,12 +23,12 @@ function initials(name: string | null, email: string): string {
 
 type StatusMeta = { label: string; badge: string; dot: string };
 
-function getStatus(d: DriverRow): StatusMeta {
+function getStatus(d: DriverRow, t: DashboardDict): StatusMeta {
   if (d.pending)
-    return { label: "Invite Pending", badge: "bg-amber-50 text-amber-600 ring-1 ring-amber-200", dot: "bg-amber-400" };
+    return { label: t.drivers.stats.invitePending, badge: "bg-amber-50 text-amber-600 ring-1 ring-amber-200", dot: "bg-amber-400" };
   if (d.activeDeliveries > 0)
-    return { label: "On the Road", badge: "bg-orange-50 text-orange-600 ring-1 ring-orange-200", dot: "bg-orange-500" };
-  return { label: "Available", badge: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200", dot: "bg-emerald-500" };
+    return { label: t.drivers.stats.onTheRoad, badge: "bg-orange-50 text-orange-600 ring-1 ring-orange-200", dot: "bg-orange-500" };
+  return { label: t.drivers.stats.available, badge: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200", dot: "bg-emerald-500" };
 }
 
 /* ── Summary card ─────────────────────────────────────────────────────────── */
@@ -52,8 +54,8 @@ function SummaryCard({ label, value, icon: Icon, iconBg, accent }: {
 
 /* ── Driver card ──────────────────────────────────────────────────────────── */
 
-function DriverCard({ d }: { d: DriverRow }) {
-  const status = getStatus(d);
+function DriverCard({ d, t }: { d: DriverRow; t: DashboardDict }) {
+  const status = getStatus(d, t);
   const [copied, setCopied] = useState(false);
 
   async function copyLink() {
@@ -65,7 +67,7 @@ function DriverCard({ d }: { d: DriverRow }) {
     } catch { /* clipboard blocked */ }
   }
 
-  const waMessage = `Habari ${d.name ?? ""}, umealikwa kuwa dereva CourierFlow. Fungua hii kujiunga: ${d.inviteLink ?? ""}`;
+  const waMessage = t.drivers.card.whatsappMsg.replace("{name}", d.name ?? "").replace("{link}", d.inviteLink ?? "");
   const waDigits  = (d.phone ?? "").replace(/\D/g, "");
   const waLink    = `https://wa.me/${waDigits}?text=${encodeURIComponent(waMessage)}`;
 
@@ -81,7 +83,7 @@ function DriverCard({ d }: { d: DriverRow }) {
           </div>
           <div className="min-w-0 flex-1 pt-0.5">
             <p className="font-heading font-semibold text-slate-900 truncate leading-tight">
-              {d.name ?? "Unnamed driver"}
+              {d.name ?? t.drivers.card.unnamed}
             </p>
             <span className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${status.badge}`}>
               <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
@@ -114,34 +116,34 @@ function DriverCard({ d }: { d: DriverRow }) {
             <p className="font-heading text-xl font-bold text-orange-500 tabular-nums leading-none">
               {d.activeDeliveries}
             </p>
-            <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Active</p>
+            <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t.drivers.card.active}</p>
           </div>
           <div className="flex flex-col items-center py-3">
             <p className="font-heading text-xl font-bold text-emerald-600 tabular-nums leading-none">
               {d.completedDeliveries}
             </p>
-            <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Done</p>
+            <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t.drivers.card.done}</p>
           </div>
           <div className="flex flex-col items-center py-3">
             <p className="font-heading text-xl font-bold text-slate-700 tabular-nums leading-none">
               {d.totalDeliveries}
             </p>
-            <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Total</p>
+            <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t.drivers.card.total}</p>
           </div>
         </div>
 
         {/* Invite link — only while the driver hasn't joined yet */}
         {d.pending && d.inviteLink && (
           <div className="mt-4 border-t border-slate-100 pt-4">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Invite link</p>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">{t.drivers.card.inviteLink}</p>
             <div className="flex gap-2">
               <button
                 onClick={copyLink}
                 className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-cf-primary/10 px-3 py-2 text-xs font-bold text-cf-primary transition-colors hover:bg-cf-primary/15"
               >
                 {copied
-                  ? <><IconCircleCheck className="h-3.5 w-3.5" stroke={2.5} /> Copied</>
-                  : <><IconCopy className="h-3.5 w-3.5" stroke={2} /> Copy link</>}
+                  ? <><IconCircleCheck className="h-3.5 w-3.5" stroke={2.5} /> {t.drivers.card.copied}</>
+                  : <><IconCopy className="h-3.5 w-3.5" stroke={2} /> {t.drivers.card.copyLink}</>}
               </button>
               <a
                 href={waLink}
@@ -149,7 +151,7 @@ function DriverCard({ d }: { d: DriverRow }) {
                 rel="noopener noreferrer"
                 className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-green-500/10 px-3 py-2 text-xs font-bold text-green-600 transition-colors hover:bg-green-500/15"
               >
-                <IconBrandWhatsapp className="h-3.5 w-3.5" stroke={2} /> WhatsApp
+                <IconBrandWhatsapp className="h-3.5 w-3.5" stroke={2} /> {t.drivers.card.whatsapp}
               </a>
             </div>
           </div>
@@ -189,7 +191,7 @@ function GridSkeleton() {
 
 /* ── Setup needed ─────────────────────────────────────────────────────────── */
 
-function SetupNeededCard() {
+function SetupNeededCard({ t }: { t: DashboardDict }) {
   const [loading, setLoading] = useState(false);
   const handleSetup = async () => {
     setLoading(true);
@@ -213,12 +215,12 @@ function SetupNeededCard() {
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 mb-5">
         <IconSettings className="h-8 w-8 text-slate-400" stroke={1.5} />
       </div>
-      <h3 className="font-heading text-lg font-semibold text-slate-800 mb-1">Account not set up</h3>
+      <h3 className="font-heading text-lg font-semibold text-slate-800 mb-1">{t.dashboard.setupTitle}</h3>
       <p className="text-sm text-slate-500 mb-6 max-w-sm">
-        Your account is not linked to an organization yet. Click below to complete setup.
+        {t.dashboard.setupDesc}
       </p>
       <Button onClick={handleSetup} disabled={loading} className="bg-cf-primary hover:bg-cf-primary/90 text-white">
-        {loading ? "Setting up…" : "Complete Setup"}
+        {loading ? "..." : t.dashboard.completeSetup}
       </Button>
     </Card>
   );
@@ -227,6 +229,7 @@ function SetupNeededCard() {
 /* ── Main ─────────────────────────────────────────────────────────────────── */
 
 export function DriversManager() {
+  const { t } = useLanguage();
   const [drivers, setDrivers]   = useState<DriverRow[]>([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState<string | null>(null);
@@ -269,7 +272,7 @@ export function DriversManager() {
     );
   }, [drivers, search]);
 
-  if (setupNeeded) return <SetupNeededCard />;
+  if (setupNeeded) return <SetupNeededCard t={t} />;
 
   const totalDrivers = drivers.length;
   const onTheRoad    = drivers.filter((d) => d.activeDeliveries > 0).length;
@@ -284,7 +287,7 @@ export function DriversManager() {
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" stroke={1.8} />
           <input
             type="text"
-            placeholder="Search drivers…"
+            placeholder={t.drivers.search}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-9 w-56 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cf-primary/30 focus:border-cf-primary transition-colors"
@@ -293,7 +296,7 @@ export function DriversManager() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline" size="icon" className="h-9 w-9 border-slate-200"
-            onClick={() => void fetchDrivers()} disabled={loading} title="Refresh"
+            onClick={() => void fetchDrivers()} disabled={loading} title={t.deliveries.refresh}
           >
             <IconRefresh className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
@@ -302,7 +305,7 @@ export function DriversManager() {
             className="bg-cf-primary hover:bg-cf-primary/90 text-white h-9 shadow-sm"
           >
             <IconPlus className="mr-2 h-4 w-4" />
-            Add Driver
+            {t.drivers.addDriver}
           </Button>
         </div>
       </div>
@@ -310,10 +313,10 @@ export function DriversManager() {
       {/* Summary */}
       {!loading && !error && totalDrivers > 0 && (
         <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
-          <SummaryCard label="Total Drivers"  value={totalDrivers} icon={IconUsers}      iconBg="bg-cf-primary"  accent="bg-cf-primary" />
-          <SummaryCard label="On the Road"    value={onTheRoad}    icon={IconTruck}      iconBg="bg-orange-500"  accent="bg-orange-500" />
-          <SummaryCard label="Available"      value={available}    icon={IconUserCheck}  iconBg="bg-emerald-600" accent="bg-emerald-500" />
-          <SummaryCard label="Invite Pending" value={pending}      icon={IconClockHour4} iconBg="bg-amber-500"   accent="bg-amber-400" />
+          <SummaryCard label={t.drivers.stats.total}  value={totalDrivers} icon={IconUsers}      iconBg="bg-cf-primary"  accent="bg-cf-primary" />
+          <SummaryCard label={t.drivers.stats.onTheRoad}    value={onTheRoad}    icon={IconTruck}      iconBg="bg-orange-500"  accent="bg-orange-500" />
+          <SummaryCard label={t.drivers.stats.available}      value={available}    icon={IconUserCheck}  iconBg="bg-emerald-600" accent="bg-emerald-500" />
+          <SummaryCard label={t.drivers.stats.invitePending} value={pending}      icon={IconClockHour4} iconBg="bg-amber-500"   accent="bg-amber-400" />
         </div>
       )}
 
@@ -323,11 +326,11 @@ export function DriversManager() {
       ) : error ? (
         <Card className="flex flex-col items-center justify-center py-14 text-center border-0 ring-1 ring-red-100 bg-white shadow-sm">
           <IconAlertTriangle className="h-10 w-10 text-red-400 mb-3" stroke={1.5} />
-          <p className="text-sm font-medium text-red-600 mb-1">Something went wrong</p>
+          <p className="text-sm font-medium text-red-600 mb-1">{t.dashboard.errorTitle}</p>
           <p className="text-xs text-slate-400 mb-4">{error}</p>
           <Button variant="outline" size="sm" onClick={() => void fetchDrivers()}>
             <IconRefresh className="mr-2 h-3.5 w-3.5" />
-            Try Again
+            {t.dashboard.tryAgain}
           </Button>
         </Card>
       ) : totalDrivers === 0 ? (
@@ -335,26 +338,26 @@ export function DriversManager() {
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cf-primary/8 mb-5">
             <IconUsersGroup className="h-8 w-8 text-cf-primary/50" stroke={1.5} />
           </div>
-          <h3 className="font-heading text-lg font-semibold text-slate-800 mb-1">No drivers yet</h3>
+          <h3 className="font-heading text-lg font-semibold text-slate-800 mb-1">{t.drivers.emptyTitle}</h3>
           <p className="text-sm text-slate-500 mb-6 max-w-xs">
-            Add your first driver so you can assign deliveries and track them on the fleet map.
+            {t.drivers.emptyDesc}
           </p>
           <Button onClick={() => setAddOpen(true)} className="bg-cf-primary hover:bg-cf-primary/90 text-white shadow-sm">
             <IconPlus className="mr-2 h-4 w-4" />
-            Add First Driver
+            {t.drivers.createFirst}
           </Button>
         </Card>
       ) : filtered.length === 0 ? (
         <Card className="flex flex-col items-center justify-center py-14 text-center border-0 ring-1 ring-slate-100 bg-white shadow-sm">
           <IconSearch className="h-8 w-8 text-slate-300 mb-3" stroke={1.5} />
-          <p className="text-sm font-medium text-slate-600 mb-1">No drivers match &ldquo;{search}&rdquo;</p>
+          <p className="text-sm font-medium text-slate-600 mb-1">{t.drivers.filterEmpty} &ldquo;{search}&rdquo;</p>
           <button onClick={() => setSearch("")} className="mt-2 text-xs text-cf-primary hover:underline">
-            Clear search
+            {t.drivers.clearSearch}
           </button>
         </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((d) => <DriverCard key={d.id} d={d} />)}
+          {filtered.map((d) => <DriverCard key={d.id} d={d} t={t} />)}
         </div>
       )}
 
