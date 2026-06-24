@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { randomUUID } from "crypto";
+import { randomUUID, randomBytes } from "crypto";
 import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
 import { enforceRateLimit } from "@/lib/security/rate-limit";
 import { createDriverSchema } from "@/lib/validations/driver";
+import { sendSms } from "@/lib/sms/africas-talking";
 
 const ACTIVE_STATUSES = new Set(["ASSIGNED", "PICKED_UP", "IN_TRANSIT"]);
 
@@ -89,18 +90,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "A user with this email already exists" }, { status: 409 });
   }
 
+  const inviteToken = randomBytes(24).toString("hex");
+
   try {
     const driver = await prisma.user.create({
       data: {
-        clerkId:        `pending_${randomUUID()}`, // replaced when the driver signs in
+        clerkId:        `pending_${randomUUID()}`, // replaced when the driver accepts the invite
         email,
         name,
         phone,
         role:           "DRIVER",
         organizationId: user.organizationId,
+        inviteToken,
       },
       select: { id: true, name: true, phone: true, email: true, createdAt: true },
     });
+
+    /* Build the invite link and SMS it to the driver (best-effort). The driver
+       opens it, signs up with ANY email, and the token links them — no need to
+       match a pre-set email, so "email already taken" never blocks them. */
+    const appUrl     = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
+    const inviteLink = `${appUrl}/invite/${inviteToken}`;
+
+    if (phone) {
+      const org = await prisma.organization.findUnique({
+        where:  { id: user.organizationId },
+        select: { name: true },
+      });
+      const msg =
+        `CourierFlow: Umealikwa kuwa dereva${org?.name ? ` wa ${org.name}` : ""}. ` +
+        `Fungua hii kujiunga: ${inviteLink}`;
+      void sendSms(phone, msg).catch(() => {});
+    }
 
     return NextResponse.json(
       {
@@ -112,6 +133,7 @@ export async function POST(req: NextRequest) {
         completedDeliveries: 0,
         totalDeliveries:     0,
         pending:             true,
+        inviteLink,
         createdAt:           driver.createdAt.toISOString(),
       },
       { status: 201 }

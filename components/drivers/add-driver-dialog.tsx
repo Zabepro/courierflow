@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import {
   IconUserPlus, IconUser, IconPhone, IconMail, IconArrowRight, IconX,
+  IconCopy, IconCircleCheck, IconLink,
 } from "@tabler/icons-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -34,6 +35,17 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
   const [form, setForm]         = useState<FormData>(DEFAULT);
   const [errors, setErrors]     = useState<FieldErrors | null>(null);
   const [submitting, setSubmit] = useState(false);
+  const [invite, setInvite]     = useState<{ link: string; name: string } | null>(null);
+  const [copied, setCopied]     = useState(false);
+
+  async function copyLink() {
+    if (!invite) return;
+    try {
+      await navigator.clipboard.writeText(invite.link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* clipboard blocked — user can select manually */ }
+  }
 
   function set(k: keyof FormData, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
@@ -50,6 +62,8 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
   function close() {
     setForm(DEFAULT);
     setErrors(null);
+    setInvite(null);
+    setCopied(false);
     onOpenChange(false);
   }
 
@@ -70,9 +84,8 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
         return;
       }
       onCreated(data as DriverRow);
-      setForm(DEFAULT);
-      setErrors(null);
-      toast.success("Driver added successfully");
+      setInvite({ link: (data as { inviteLink?: string }).inviteLink ?? "", name: (data as DriverRow).name ?? "the driver" });
+      toast.success("Driver added — invite sent by SMS");
     } catch {
       toast.error("Network error — please try again");
     } finally {
@@ -93,12 +106,52 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
                 Add Driver
               </DialogTitle>
               <DialogDescription className="text-[13px] text-slate-500 mt-0.5">
-                They&apos;ll be linked automatically when they sign in with this email.
+                We&apos;ll text them an invite link — they sign up and they&apos;re in.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
+        {invite ? (
+          <div className="px-6 py-6">
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/15">
+                <IconCircleCheck className="h-6 w-6 text-green-600" stroke={2} />
+              </div>
+              <h3 className="font-heading text-base font-bold text-slate-800">{invite.name} invited</h3>
+              <p className="mt-1 text-sm text-slate-500">
+                An SMS with the invite link was sent to their phone. You can also share it manually:
+              </p>
+            </div>
+
+            <div className="mt-4 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <IconLink className="h-4 w-4 shrink-0 text-slate-400" stroke={2} />
+              <input
+                readOnly
+                value={invite.link}
+                onFocus={(e) => e.currentTarget.select()}
+                className="min-w-0 flex-1 bg-transparent text-xs text-slate-600 outline-none"
+              />
+              <button
+                type="button"
+                onClick={copyLink}
+                className={cn(
+                  "flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors",
+                  copied ? "bg-green-100 text-green-700" : "bg-cf-primary text-white hover:bg-cf-primary/90",
+                )}
+              >
+                {copied ? <><IconCircleCheck className="h-3.5 w-3.5" stroke={2.5} /> Copied</> : <><IconCopy className="h-3.5 w-3.5" stroke={2} /> Copy</>}
+              </button>
+            </div>
+
+            <Button
+              onClick={close}
+              className="mt-5 w-full bg-cf-primary hover:bg-cf-primary/90 text-white h-10 font-semibold shadow-sm"
+            >
+              Done
+            </Button>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 space-y-4">
             {/* Name */}
@@ -171,6 +224,7 @@ export function AddDriverDialog({ open, onOpenChange, onCreated }: Props) {
             </Button>
           </div>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );
