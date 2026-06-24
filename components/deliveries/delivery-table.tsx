@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   IconUserPlus, IconCopy, IconCheck, IconEye,
   IconCircleCheck, IconClockHour4, IconCircleX,
+  IconBrandWhatsapp,
 } from "@tabler/icons-react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -167,6 +168,16 @@ export function DeliveryTable({ deliveries, onDeliveryUpdated }: Props) {
                         : <IconCopy  className="h-4 w-4" stroke={1.8} />
                       }
                     </Button>
+                    <a
+                      href={`https://wa.me/${d.recipientPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Habari ${d.recipientName}, Mzigo wako unakuja! Unaweza kuufuatilia hapa: ${window.location.origin}/track/${d.trackingCode}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center h-8 w-8 text-slate-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+                      title="Share via WhatsApp"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <IconBrandWhatsapp className="h-4 w-4" stroke={1.8} />
+                    </a>
                     {!TERMINAL.has(d.status) && (
                       <Button
                         size="icon" variant="ghost"

@@ -7,7 +7,7 @@ import {
   IconTruck, IconCalendar, IconAlertCircle, IconExternalLink,
   IconUserCheck, IconClipboardCheck, IconDeviceMobile,
   IconCurrencyDollar, IconPhone, IconRefresh, IconCircleCheck,
-  IconCircleX, IconLoader2,
+  IconCircleX, IconLoader2, IconBrandWhatsapp,
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { DeliveryStatusBadge } from "./delivery-status-badge";
@@ -353,6 +353,15 @@ export function DeliveryDetailSheet({ delivery, open, onOpenChange, onDeliveryUp
               <div className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
                 <IconExternalLink className="h-4 w-4 shrink-0 text-slate-400" stroke={1.6} />
                 <span className="flex-1 truncate text-xs text-slate-500 font-mono">{trackingUrl}</span>
+                <a
+                  href={`https://wa.me/${d.recipientPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Habari ${d.recipientName}, Mzigo wako unakuja! Unaweza kuufuatilia hapa: ${trackingUrl}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 flex items-center gap-1.5 rounded-lg bg-[#25D366] px-2.5 py-1.5 text-xs font-medium text-white hover:bg-[#20b958] transition-colors"
+                  title="Share via WhatsApp"
+                >
+                  <IconBrandWhatsapp className="h-3.5 w-3.5" /> Share
+                </a>
                 <button
                   onClick={copyLink}
                   title="Copy link"
