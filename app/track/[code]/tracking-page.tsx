@@ -7,8 +7,11 @@ import {
 } from "@tabler/icons-react";
 import { useLanguage } from "@/lib/i18n/context";
 import { useTheme } from "next-themes";
+import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 import { DashboardDict } from "@/lib/i18n/dictionary";
+
+const LiveMap = dynamic(() => import("./live-map"), { ssr: false, loading: () => <div className="h-full w-full bg-slate-100 dark:bg-slate-800 animate-pulse" /> });
 
 /* ── CSS animations injected once ──────────────────────────────────────── */
 
@@ -547,29 +550,33 @@ function LiveLocationCard({ code, status, pt }: { code: string; status: string; 
       </div>
 
       {/* Body */}
-      <div className="px-6 py-5">
+      <div className="relative w-full h-[250px] bg-slate-100 dark:bg-slate-800">
         {!loc ? (
-          <div className="flex items-start gap-4">
-            <IconTruck className="h-10 w-10 text-slate-300 dark:text-slate-600 shrink-0 mt-1" stroke={1.5} />
-            <div>
-              <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                {connected ? pt.gpsNotActive : pt.connectingLive}
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                {connected ? pt.locWillAppear : pt.establishingConn}
-              </p>
+          <div className="absolute inset-0 flex items-center justify-center px-6">
+            <div className="flex items-start gap-4">
+              <IconTruck className="h-10 w-10 text-slate-300 dark:text-slate-600 shrink-0 mt-1" stroke={1.5} />
+              <div>
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                  {connected ? pt.gpsNotActive : pt.connectingLive}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                  {connected ? pt.locWillAppear : pt.establishingConn}
+                </p>
+              </div>
             </div>
           </div>
         ) : (
-          <div>
-            <p className="font-mono text-base font-bold text-slate-800 dark:text-slate-200 tabular-nums bg-slate-50 dark:bg-slate-800/50 inline-block px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700/50">
-              {loc.lat.toFixed(5)}°&nbsp;&nbsp;{loc.lng.toFixed(5)}°
-            </p>
+          <div className="h-full w-full relative">
+            <LiveMap lat={loc.lat} lng={loc.lng} accuracy={loc.accuracy} />
             {loc.accuracy != null && (
-              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mt-3 flex items-center gap-1.5">
-                <IconMapPin className="h-3.5 w-3.5 shrink-0" />
-                {pt.accuracy}{Math.round(loc.accuracy)}m
-              </p>
+              <div className="absolute bottom-3 left-3 z-10">
+                <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg shadow-sm border border-slate-200/50 dark:border-slate-700/50">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                    <IconMapPin className="h-3 w-3 shrink-0 text-emerald-500" />
+                    {pt.accuracy}{Math.round(loc.accuracy)}m
+                  </p>
+                </div>
+              </div>
             )}
           </div>
         )}
