@@ -12,7 +12,7 @@ export default async function DriverHomePage() {
     where:  { clerkId: userId },
     select: { id: true, name: true, role: true, organizationId: true },
   });
-  if (!user || !user.organizationId) redirect("/sign-in");
+  if (!user || !user.organizationId) redirect("/sync");
 
   const isDriver = user.role === "DRIVER";
 

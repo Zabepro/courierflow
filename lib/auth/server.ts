@@ -67,13 +67,12 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   return user as SessionUser;
 }
 
-/**
- * Guard for admin-facing dashboard pages. Drivers are bounced to their own
- * portal; signed-out users to sign-in. Returns the admin/viewer user.
- */
 export async function requireAdminPage(): Promise<SessionUser> {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) redirect("/sign-in");
+
   const me = await getSessionUser();
-  if (!me) redirect("/sign-in");
+  if (!me) redirect("/sync");
   if (me.role === "DRIVER") redirect("/dashboard/driver");
   return me;
 }
