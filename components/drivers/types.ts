@@ -7,5 +7,6 @@ export type DriverRow = {
   completedDeliveries: number;
   totalDeliveries: number;
   pending: boolean;
+  inviteLink?: string | null;
   createdAt: string;
 };

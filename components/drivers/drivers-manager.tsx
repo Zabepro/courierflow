@@ -6,6 +6,7 @@ import {
   IconPlus, IconRefresh, IconUsers, IconAlertTriangle,
   IconSettings, IconTruck, IconCircleCheck, IconPhone, IconMail,
   IconUserCheck, IconClockHour4, IconSearch, IconUsersGroup,
+  IconCopy, IconBrandWhatsapp,
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -53,6 +54,21 @@ function SummaryCard({ label, value, icon: Icon, iconBg, accent }: {
 
 function DriverCard({ d }: { d: DriverRow }) {
   const status = getStatus(d);
+  const [copied, setCopied] = useState(false);
+
+  async function copyLink() {
+    if (!d.inviteLink) return;
+    try {
+      await navigator.clipboard.writeText(d.inviteLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* clipboard blocked */ }
+  }
+
+  const waMessage = `Habari ${d.name ?? ""}, umealikwa kuwa dereva CourierFlow. Fungua hii kujiunga: ${d.inviteLink ?? ""}`;
+  const waDigits  = (d.phone ?? "").replace(/\D/g, "");
+  const waLink    = `https://wa.me/${waDigits}?text=${encodeURIComponent(waMessage)}`;
+
   return (
     <Card className="group bg-white border-0 ring-1 ring-slate-100 shadow-sm hover:shadow-md hover:ring-cf-primary/25 transition-all duration-200 overflow-hidden">
       <div className="h-[3px] bg-gradient-to-r from-cf-primary via-cf-primary/50 to-transparent" />
@@ -113,6 +129,31 @@ function DriverCard({ d }: { d: DriverRow }) {
             <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Total</p>
           </div>
         </div>
+
+        {/* Invite link — only while the driver hasn't joined yet */}
+        {d.pending && d.inviteLink && (
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Invite link</p>
+            <div className="flex gap-2">
+              <button
+                onClick={copyLink}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-cf-primary/10 px-3 py-2 text-xs font-bold text-cf-primary transition-colors hover:bg-cf-primary/15"
+              >
+                {copied
+                  ? <><IconCircleCheck className="h-3.5 w-3.5" stroke={2.5} /> Copied</>
+                  : <><IconCopy className="h-3.5 w-3.5" stroke={2} /> Copy link</>}
+              </button>
+              <a
+                href={waLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-green-500/10 px-3 py-2 text-xs font-bold text-green-600 transition-colors hover:bg-green-500/15"
+              >
+                <IconBrandWhatsapp className="h-3.5 w-3.5" stroke={2} /> WhatsApp
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );

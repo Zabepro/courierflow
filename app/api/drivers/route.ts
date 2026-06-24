@@ -16,9 +16,11 @@ export async function GET() {
 
   const drivers = await prisma.user.findMany({
     where:  { organizationId: user.organizationId, role: "DRIVER" },
-    select: { id: true, name: true, phone: true, email: true, clerkId: true, createdAt: true },
+    select: { id: true, name: true, phone: true, email: true, clerkId: true, inviteToken: true, createdAt: true },
     orderBy: { name: "asc" },
   });
+
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
 
   if (drivers.length === 0) return NextResponse.json([]);
 
@@ -42,6 +44,8 @@ export async function GET() {
   return NextResponse.json(
     drivers.map((d) => {
       const s = stats.get(d.id) ?? { active: 0, completed: 0, total: 0 };
+      // A driver added by an admin hasn't signed in via Clerk yet.
+      const pending = d.clerkId.startsWith("pending_");
       return {
         id:                  d.id,
         name:                d.name,
@@ -50,8 +54,8 @@ export async function GET() {
         activeDeliveries:    s.active,      // kept for the assign-driver dialog
         completedDeliveries: s.completed,
         totalDeliveries:     s.total,
-        // A driver added by an admin hasn't signed in via Clerk yet.
-        pending:             d.clerkId.startsWith("pending_"),
+        pending,
+        inviteLink:          pending && d.inviteToken ? `${appUrl}/invite/${d.inviteToken}` : null,
         createdAt:           d.createdAt.toISOString(),
       };
     })
