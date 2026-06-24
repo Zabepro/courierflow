@@ -3,8 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import {
   IconTruck, IconPackage, IconMapPin, IconCircleCheck,
-  IconClock, IconAlertTriangle, IconUserCheck,
+  IconClock, IconAlertTriangle, IconUserCheck, IconLanguage, IconMoon, IconSun
 } from "@tabler/icons-react";
+import { useLanguage } from "@/lib/i18n/context";
+import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
+import { DashboardDict } from "@/lib/i18n/dictionary";
 
 /* ── CSS animations injected once ──────────────────────────────────────── */
 
@@ -14,17 +18,32 @@ const STYLES = `
     100% { background-position:  400% 0; }
   }
   @keyframes cf-fade-up {
-    from { opacity: 0; transform: translateY(8px); }
+    from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0);   }
   }
+  @keyframes cf-blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+  }
+  .animate-blob {
+    animation: cf-blob 7s infinite;
+  }
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
   .cf-skel {
-    background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
+    background: linear-gradient(90deg, rgba(200,200,200,0.1) 25%, rgba(200,200,200,0.2) 50%, rgba(200,200,200,0.1) 75%);
     background-size: 400% 100%;
     animation: cf-shimmer 1.6s ease-in-out infinite;
     border-radius: 6px;
   }
   .cf-fade-in {
-    animation: cf-fade-up 0.38s ease-out both;
+    animation: cf-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 `;
 
@@ -50,25 +69,25 @@ type PageState = "loading" | "found" | "not_found" | "rate_limited" | "error";
 /* ── Timeline config ────────────────────────────────────────────────────── */
 
 const STEPS = [
-  { key: "PENDING",    label: "Order Created",   icon: IconPackage    },
-  { key: "ASSIGNED",   label: "Driver Assigned",  icon: IconUserCheck  },
-  { key: "PICKED_UP",  label: "Picked Up",        icon: IconTruck      },
-  { key: "IN_TRANSIT", label: "In Transit",       icon: IconMapPin     },
-  { key: "DELIVERED",  label: "Delivered",        icon: IconCircleCheck },
+  { key: "PENDING",    labelKey: "orderCreated",   icon: IconPackage    },
+  { key: "ASSIGNED",   labelKey: "driverAssigned", icon: IconUserCheck  },
+  { key: "PICKED_UP",  labelKey: "pickedUp",       icon: IconTruck      },
+  { key: "IN_TRANSIT", labelKey: "inTransit",      icon: IconMapPin     },
+  { key: "DELIVERED",  labelKey: "delivered",      icon: IconCircleCheck },
 ] as const;
 
 const STATUS_ORDER: Record<string, number> = {
   PENDING: 0, ASSIGNED: 1, PICKED_UP: 2, IN_TRANSIT: 3, DELIVERED: 4,
 };
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; iconColor: string }> = {
-  PENDING:    { label: "Pending",    color: "text-slate-600",  bg: "bg-slate-50",  border: "border-slate-200",  iconColor: "text-slate-400"  },
-  ASSIGNED:   { label: "Assigned",   color: "text-blue-700",   bg: "bg-blue-50",   border: "border-blue-200",   iconColor: "text-blue-500"   },
-  PICKED_UP:  { label: "Picked Up",  color: "text-amber-700",  bg: "bg-amber-50",  border: "border-amber-200",  iconColor: "text-amber-500"  },
-  IN_TRANSIT: { label: "In Transit", color: "text-orange-700", bg: "bg-orange-50", border: "border-orange-200", iconColor: "text-orange-500" },
-  DELIVERED:  { label: "Delivered",  color: "text-green-700",  bg: "bg-green-50",  border: "border-green-200",  iconColor: "text-green-500"  },
-  FAILED:     { label: "Failed",     color: "text-red-700",    bg: "bg-red-50",    border: "border-red-200",    iconColor: "text-red-500"    },
-  CANCELLED:  { label: "Cancelled",  color: "text-slate-500",  bg: "bg-slate-50",  border: "border-slate-200",  iconColor: "text-slate-400"  },
+const STATUS_CONFIG: Record<string, { labelKey: keyof DashboardDict["publicTracking"]; color: string; bg: string; border: string; iconColor: string }> = {
+  PENDING:    { labelKey: "orderCreated",   color: "text-slate-700 dark:text-slate-300",  bg: "bg-slate-100/50 dark:bg-slate-800/50",  border: "border-slate-200 dark:border-slate-700",  iconColor: "text-slate-500 dark:text-slate-400"  },
+  ASSIGNED:   { labelKey: "driverAssigned", color: "text-blue-700 dark:text-blue-400",   bg: "bg-blue-50/50 dark:bg-blue-900/20",   border: "border-blue-200 dark:border-blue-800/50",   iconColor: "text-blue-500 dark:text-blue-400"   },
+  PICKED_UP:  { labelKey: "pickedUp",       color: "text-amber-700 dark:text-amber-400",  bg: "bg-amber-50/50 dark:bg-amber-900/20",  border: "border-amber-200 dark:border-amber-800/50",  iconColor: "text-amber-500 dark:text-amber-400"  },
+  IN_TRANSIT: { labelKey: "inTransit",      color: "text-orange-700 dark:text-orange-400", bg: "bg-orange-50/50 dark:bg-orange-900/20", border: "border-orange-200 dark:border-orange-800/50", iconColor: "text-orange-500 dark:text-orange-400" },
+  DELIVERED:  { labelKey: "delivered",      color: "text-emerald-700 dark:text-emerald-400",  bg: "bg-emerald-50/50 dark:bg-emerald-900/20",  border: "border-emerald-200 dark:border-emerald-800/50",  iconColor: "text-emerald-500 dark:text-emerald-400"  },
+  FAILED:     { labelKey: "failedMsg",      color: "text-red-700 dark:text-red-400",    bg: "bg-red-50/50 dark:bg-red-900/20",    border: "border-red-200 dark:border-red-800/50",    iconColor: "text-red-500 dark:text-red-400"    },
+  CANCELLED:  { labelKey: "cancelledMsg",   color: "text-slate-500 dark:text-slate-400",  bg: "bg-slate-50/50 dark:bg-slate-800/50",  border: "border-slate-200 dark:border-slate-700",  iconColor: "text-slate-400 dark:text-slate-500"  },
 };
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
@@ -81,94 +100,92 @@ function fmtDate(iso: string | null): string {
   });
 }
 
-
-/* ── Skeleton helper ────────────────────────────────────────────────────── */
-
 function Skel({ w, h, rounded = "6px", className = "" }: { w: string; h: string; rounded?: string; className?: string }) {
-  return (
-    <div
-      className={`cf-skel ${className}`}
-      style={{ width: w, height: h, borderRadius: rounded }}
-    />
-  );
+  return <div className={`cf-skel ${className}`} style={{ width: w, height: h, borderRadius: rounded }} />;
 }
 
 /* ── Shared header ──────────────────────────────────────────────────────── */
 
 function Header() {
+  const { lang, setLang } = useLanguage();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
   return (
-    <header className="bg-white border-b px-4 py-4 sticky top-0 z-10 shadow-sm">
-      <div className="max-w-lg mx-auto flex items-center gap-2">
-        <IconTruck className="h-5 w-5 text-cf-primary" stroke={1.8} />
-        <span className="font-heading text-lg font-bold text-cf-primary tracking-tight">CourierFlow</span>
+    <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 cf-fade-in">
+      <div className="max-w-lg mx-auto flex items-center justify-between bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-sm rounded-2xl px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-cf-primary to-emerald-400 flex items-center justify-center shadow-inner">
+            <IconTruck className="h-4 w-4 text-white" stroke={2} />
+          </div>
+          <span className="font-heading text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-cf-primary to-emerald-600 dark:from-emerald-400 dark:to-teal-300 tracking-tight">
+            CourierFlow
+          </span>
+        </div>
+        
+        {mounted && (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setLang(lang === "en" ? "sw" : "en")}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-xs font-bold text-slate-600 dark:text-slate-300"
+            >
+              <IconLanguage className="h-4 w-4 text-cf-primary dark:text-emerald-400" />
+              {lang.toUpperCase()}
+            </button>
+            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300"
+            >
+              {theme === "dark" ? <IconSun className="h-4 w-4" /> : <IconMoon className="h-4 w-4" />}
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );
 }
 
-/* ── Skeleton page (pixel-matches actual layout) ────────────────────────── */
+function AnimatedBackground() {
+  return (
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-emerald-200/40 dark:bg-emerald-900/20 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-70 animate-blob" />
+      <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-teal-200/40 dark:bg-teal-900/20 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-70 animate-blob animation-delay-2000" />
+      <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-blue-200/40 dark:bg-blue-900/20 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-70 animate-blob animation-delay-4000" />
+      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] dark:opacity-[0.05] mix-blend-overlay" />
+    </div>
+  );
+}
+
+/* ── Skeleton page ──────────────────────────────────────────────────────── */
 
 function PageSkeleton() {
   return (
     <>
       <style>{STYLES}</style>
+      <AnimatedBackground />
       <Header />
-      <main className="max-w-lg mx-auto px-4 py-6 space-y-3">
-
-        {/* Status card */}
-        <div className="bg-white rounded-2xl border shadow-sm p-5">
-          <Skel w="52px"  h="10px" className="mb-2" />
-          <Skel w="220px" h="30px" className="mb-5" />
-          {/* Badge */}
-          <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3.5">
-            <Skel w="40px" h="40px" rounded="50%" className="shrink-0" />
+      <main className="relative z-10 max-w-lg mx-auto px-4 pt-28 pb-10 space-y-4">
+        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-white/40 dark:border-slate-800/60 shadow-xl p-6">
+          <Skel w="60px"  h="12px" className="mb-3" />
+          <Skel w="240px" h="36px" className="mb-6" />
+          <div className="flex items-center gap-4 rounded-2xl border border-slate-100/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-800/50 px-5 py-4">
+            <Skel w="48px" h="48px" rounded="50%" className="shrink-0" />
             <div className="space-y-2 flex-1">
-              <Skel w="120px" h="20px" />
-              <Skel w="88px"  h="12px" />
+              <Skel w="140px" h="24px" />
+              <Skel w="90px"  h="14px" />
             </div>
           </div>
         </div>
-
-        {/* Journey card */}
-        <div className="bg-white rounded-2xl border shadow-sm p-5">
-          <Skel w="68px" h="18px" className="mb-5" />
-          <div className="flex gap-4">
-            <div className="flex flex-col items-center pt-1 shrink-0 gap-1.5">
-              <Skel w="10px" h="10px" rounded="50%" />
-              <div className="w-px flex-1 min-h-[44px] bg-slate-100" />
-              <Skel w="16px" h="16px" rounded="50%" />
-            </div>
-            <div className="flex-1 space-y-4">
-              <div className="space-y-1.5">
-                <Skel w="30px"  h="10px" />
-                <Skel w="180px" h="14px" />
-              </div>
-              <div className="space-y-1.5">
-                <Skel w="18px"  h="10px" />
-                <Skel w="160px" h="14px" />
-                <Skel w="90px"  h="11px" />
-              </div>
-            </div>
+        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-white/40 dark:border-slate-800/60 shadow-xl p-6">
+          <Skel w="80px" h="20px" className="mb-6" />
+          <div className="space-y-6">
+            <Skel w="100%" h="60px" />
+            <Skel w="100%" h="60px" />
           </div>
         </div>
-
-        {/* Timeline card */}
-        <div className="bg-white rounded-2xl border shadow-sm p-5">
-          <Skel w="128px" h="18px" className="mb-5" />
-          {[140, 160, 90, 110, 75].map((w, i) => (
-            <div key={i} className="flex gap-3">
-              <div className="flex flex-col items-center shrink-0">
-                <Skel w="20px" h="20px" rounded="50%" className="mt-0.5" />
-                {i < 4 && <div className="w-px flex-1 min-h-[24px] my-1 bg-slate-100" />}
-              </div>
-              <div className="pb-4 flex-1 space-y-1.5">
-                <Skel w={`${w}px`} h="14px" />
-                {i <= 1 && <Skel w="130px" h="10px" />}
-              </div>
-            </div>
-          ))}
-        </div>
-
       </main>
     </>
   );
@@ -176,64 +193,75 @@ function PageSkeleton() {
 
 /* ── Status card ────────────────────────────────────────────────────────── */
 
-function StatusCard({ data }: { data: TrackingData }) {
-  const cfg      = STATUS_CONFIG[data.status] ?? STATUS_CONFIG.PENDING;
+function StatusCard({ data, pt }: { data: TrackingData; pt: DashboardDict["publicTracking"] }) {
+  const cfg = STATUS_CONFIG[data.status] ?? STATUS_CONFIG.PENDING;
   const isMoving = data.status === "IN_TRANSIT";
   const isDone   = data.status === "DELIVERED";
   const isBad    = data.status === "FAILED" || data.status === "CANCELLED";
 
   return (
-    <div className="bg-white rounded-2xl border shadow-sm p-5 cf-fade-in">
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Tracking</p>
-      <h1 className="font-heading text-2xl font-bold text-cf-foreground tracking-tight mb-4">
-        {data.trackingCode}
-      </h1>
+    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-3xl border border-white/50 dark:border-slate-700/50 shadow-xl p-6 cf-fade-in relative overflow-hidden group">
+      <div className={cn("absolute -right-20 -top-20 w-64 h-64 rounded-full blur-3xl opacity-20 transition-all duration-1000", isDone ? "bg-emerald-400" : isMoving ? "bg-orange-400" : "bg-blue-400")} />
+      
+      <div className="relative z-10">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">{pt.tracking}</p>
+        <h1 className="font-heading text-3xl font-black text-slate-800 dark:text-white tracking-tight mb-6 drop-shadow-sm">
+          {data.trackingCode}
+        </h1>
 
-      <div className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 ${cfg.bg} ${cfg.border}`}>
-        <div className={`shrink-0 ${isMoving ? "animate-bounce" : ""}`}>
-          {isDone && <IconCircleCheck  className={`h-9 w-9 ${cfg.iconColor}`} stroke={1.6} />}
-          {isBad  && <IconAlertTriangle className={`h-9 w-9 ${cfg.iconColor}`} stroke={1.6} />}
-          {!isDone && !isBad && <IconTruck className={`h-9 w-9 ${cfg.iconColor}`} stroke={1.6} />}
+        <div className={`flex items-center gap-4 rounded-2xl border px-5 py-4 ${cfg.bg} ${cfg.border} shadow-sm backdrop-blur-md transition-all`}>
+          <div className={`shrink-0 ${isMoving ? "animate-bounce" : ""}`}>
+            {isDone && <IconCircleCheck  className={`h-12 w-12 ${cfg.iconColor}`} stroke={1.5} />}
+            {isBad  && <IconAlertTriangle className={`h-12 w-12 ${cfg.iconColor}`} stroke={1.5} />}
+            {!isDone && !isBad && <IconTruck className={`h-12 w-12 ${cfg.iconColor}`} stroke={1.5} />}
+          </div>
+          <div>
+            <p className={`font-heading text-2xl font-bold leading-tight ${cfg.color}`}>{pt[cfg.labelKey] as string}</p>
+            {data.driverName && (
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium flex items-center gap-1.5">
+                <IconUserCheck className="h-4 w-4" />
+                {pt.driver}: {data.driverName}
+              </p>
+            )}
+          </div>
         </div>
-        <div>
-          <p className={`font-heading text-xl font-bold leading-tight ${cfg.color}`}>{cfg.label}</p>
-          {data.driverName && (
-            <p className="text-xs text-muted-foreground mt-0.5">Driver: {data.driverName}</p>
-          )}
-        </div>
+
+        {isDone && data.deliveredAt && (
+          <div className="mt-4 flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-xl px-4 py-3 font-medium text-sm">
+            <IconCircleCheck className="h-5 w-5 shrink-0" />
+            <p>{pt.deliveredOn} {fmtDate(data.deliveredAt)}</p>
+          </div>
+        )}
       </div>
-
-      {isDone && data.deliveredAt && (
-        <p className="text-xs text-green-700 mt-2.5 flex items-center gap-1.5 font-medium">
-          <IconCircleCheck className="h-3.5 w-3.5 shrink-0" />
-          Delivered on {fmtDate(data.deliveredAt)}
-        </p>
-      )}
     </div>
   );
 }
 
 /* ── Journey card ───────────────────────────────────────────────────────── */
 
-function JourneyCard({ data }: { data: TrackingData }) {
+function JourneyCard({ data, pt }: { data: TrackingData; pt: DashboardDict["publicTracking"] }) {
   return (
-    <div className="bg-white rounded-2xl border shadow-sm p-5 cf-fade-in" style={{ animationDelay: "60ms" }}>
-      <h2 className="font-heading font-semibold text-cf-foreground mb-4">Journey</h2>
-      <div className="flex gap-4">
-        <div className="flex flex-col items-center pt-1 shrink-0">
-          <div className="h-2.5 w-2.5 rounded-full bg-cf-primary" />
-          <div className="w-px flex-1 bg-border/60 my-1.5 min-h-[44px]" />
-          <IconMapPin className="h-4 w-4 text-cf-primary" />
+    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-3xl border border-white/50 dark:border-slate-700/50 shadow-xl p-6 cf-fade-in" style={{ animationDelay: "60ms" }}>
+      <h2 className="font-heading text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+        <IconMapPin className="h-6 w-6 text-cf-primary dark:text-emerald-400" />
+        {pt.journey}
+      </h2>
+      
+      <div className="flex gap-5">
+        <div className="flex flex-col items-center pt-1.5 shrink-0">
+          <div className="h-3 w-3 rounded-full bg-cf-primary dark:bg-emerald-400 shadow-[0_0_0_4px_rgba(11,93,94,0.1)] dark:shadow-[0_0_0_4px_rgba(52,211,153,0.1)]" />
+          <div className="w-px flex-1 bg-gradient-to-b from-cf-primary/50 to-slate-200 dark:from-emerald-400/50 dark:to-slate-700 my-2 min-h-[44px]" />
+          <div className="h-3 w-3 rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-slate-900" />
         </div>
-        <div className="flex-1 space-y-4 min-w-0">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-0.5">From</p>
-            <p className="text-sm font-medium text-cf-foreground leading-snug">{data.pickupAddress}</p>
+        <div className="flex-1 space-y-6 min-w-0">
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-700/50">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-cf-primary dark:text-emerald-400 mb-1">{pt.from}</p>
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug">{data.pickupAddress}</p>
           </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-0.5">To</p>
-            <p className="text-sm font-medium text-cf-foreground leading-snug">{data.deliveryAddress}</p>
-            {data.city && <p className="text-xs text-muted-foreground mt-0.5">{data.city}</p>}
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-700/50">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">{pt.to}</p>
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug">{data.deliveryAddress}</p>
+            {data.city && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{data.city}</p>}
           </div>
         </div>
       </div>
@@ -243,7 +271,7 @@ function JourneyCard({ data }: { data: TrackingData }) {
 
 /* ── Timeline card ──────────────────────────────────────────────────────── */
 
-function TimelineCard({ data }: { data: TrackingData }) {
+function TimelineCard({ data, pt }: { data: TrackingData; pt: DashboardDict["publicTracking"] }) {
   const isFailed    = data.status === "FAILED";
   const isCancelled = data.status === "CANCELLED";
   const currentIdx  = STATUS_ORDER[data.status] ?? 0;
@@ -257,17 +285,20 @@ function TimelineCard({ data }: { data: TrackingData }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border shadow-sm p-5 cf-fade-in" style={{ animationDelay: "120ms" }}>
-      <h2 className="font-heading font-semibold text-cf-foreground mb-4">Status Timeline</h2>
+    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-3xl border border-white/50 dark:border-slate-700/50 shadow-xl p-6 cf-fade-in" style={{ animationDelay: "120ms" }}>
+      <h2 className="font-heading text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+        <IconClock className="h-6 w-6 text-cf-primary dark:text-emerald-400" />
+        {pt.statusTimeline}
+      </h2>
 
       {(isFailed || isCancelled) && (
-        <div className="flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2.5 mb-4 text-sm text-red-700">
-          <IconAlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-          {isFailed ? "This delivery could not be completed." : "This delivery was cancelled."}
+        <div className="flex items-start gap-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 px-4 py-4 mb-6 text-sm text-red-700 dark:text-red-400 font-medium">
+          <IconAlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+          {isFailed ? pt.failedMsg : pt.cancelledMsg}
         </div>
       )}
 
-      <div>
+      <div className="relative">
         {STEPS.map((step, idx) => {
           const done    = idx < currentIdx || (data.status === "DELIVERED" && idx === 4);
           const current = idx === currentIdx && !isFailed && !isCancelled;
@@ -275,37 +306,37 @@ function TimelineCard({ data }: { data: TrackingData }) {
           const Icon    = step.icon;
 
           return (
-            <div key={step.key} className="flex gap-3">
+            <div key={step.key} className="flex gap-4">
               <div className="flex flex-col items-center shrink-0">
                 <div className={[
-                  "h-5 w-5 rounded-full border-2 flex items-center justify-center mt-0.5 transition-all",
-                  done    ? "bg-cf-primary border-cf-primary" : "",
-                  current ? "bg-white border-cf-primary shadow-[0_0_0_4px_rgba(11,93,94,0.12)]" : "",
-                  !done && !current ? "bg-white border-border" : "",
+                  "h-8 w-8 rounded-full border-[3px] flex items-center justify-center mt-0.5 transition-all duration-500",
+                  done    ? "bg-cf-primary border-cf-primary dark:bg-emerald-500 dark:border-emerald-500" : "",
+                  current ? "bg-white dark:bg-slate-900 border-cf-primary dark:border-emerald-400 shadow-[0_0_0_6px_rgba(11,93,94,0.15)] dark:shadow-[0_0_0_6px_rgba(52,211,153,0.15)] animate-pulse" : "",
+                  !done && !current ? "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700" : "",
                 ].filter(Boolean).join(" ")}>
-                  {done    && <Icon className="h-2.5 w-2.5 text-white" />}
-                  {current && <div className="h-2 w-2 rounded-full bg-cf-primary" />}
+                  {done    && <Icon className="h-4 w-4 text-white" stroke={2.5} />}
+                  {current && <div className="h-2.5 w-2.5 rounded-full bg-cf-primary dark:bg-emerald-400" />}
                 </div>
                 {idx < STEPS.length - 1 && (
-                  <div className={`w-px flex-1 my-1 min-h-[20px] transition-colors ${done ? "bg-cf-primary/40" : "bg-border"}`} />
+                  <div className={`w-1 flex-1 my-2 min-h-[32px] rounded-full transition-colors duration-500 ${done ? "bg-cf-primary/40 dark:bg-emerald-500/40" : "bg-slate-100 dark:bg-slate-800"}`} />
                 )}
               </div>
 
-              <div className="pb-4 flex-1 min-w-0">
+              <div className="pb-6 flex-1 min-w-0 pt-1.5">
                 <p className={[
-                  "text-sm font-medium leading-tight",
-                  current ? "text-cf-primary" : done ? "text-cf-foreground" : "text-muted-foreground/70",
+                  "text-base font-bold leading-tight transition-colors duration-300",
+                  current ? "text-cf-primary dark:text-emerald-400" : done ? "text-slate-800 dark:text-slate-200" : "text-slate-400 dark:text-slate-600",
                 ].join(" ")}>
-                  {step.label}
+                  {pt[step.labelKey] as string}
                   {current && (
-                    <span className="ml-2 inline-block rounded-full bg-cf-primary/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-cf-primary align-middle">
-                      Now
+                    <span className="ml-3 inline-block rounded-full bg-cf-primary/10 dark:bg-emerald-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-cf-primary dark:text-emerald-400 align-middle">
+                      {pt.now}
                     </span>
                   )}
                 </p>
                 {ts && (
-                  <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                    <IconClock className="h-3 w-3 shrink-0" />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 flex items-center gap-1.5 font-medium">
+                    <IconClock className="h-3.5 w-3.5 shrink-0 opacity-70" />
                     {fmtDate(ts)}
                   </p>
                 )}
@@ -323,6 +354,8 @@ function TimelineCard({ data }: { data: TrackingData }) {
 export function TrackingPage({ code }: { code: string }) {
   const [state, setState] = useState<PageState>("loading");
   const [data,  setData]  = useState<TrackingData | null>(null);
+  const { t } = useLanguage();
+  const pt = t.publicTracking;
 
   function load() {
     setState("loading");
@@ -331,7 +364,6 @@ export function TrackingPage({ code }: { code: string }) {
 
     fetch(`/api/track/${encodeURIComponent(code)}`)
       .then(async (res) => {
-        // Always show skeleton for at least 700ms so the user sees the animation
         const elapsed = Date.now() - start;
         if (elapsed < 700) await new Promise(r => setTimeout(r, 700 - elapsed));
 
@@ -344,7 +376,6 @@ export function TrackingPage({ code }: { code: string }) {
       .catch(() => setState("error"));
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [code]);
 
   /* Loading */
@@ -354,16 +385,21 @@ export function TrackingPage({ code }: { code: string }) {
   if (state === "not_found") return (
     <>
       <style>{STYLES}</style>
+      <AnimatedBackground />
       <Header />
-      <main className="max-w-lg mx-auto px-4 py-20 text-center cf-fade-in">
-        <IconPackage className="h-16 w-16 text-muted-foreground/30 mx-auto mb-5" stroke={1.2} />
-        <h2 className="font-heading text-xl font-semibold text-cf-foreground mb-2">Tracking code not found</h2>
-        <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-          Please double-check the code and try again. Contact the sender if the problem persists.
-        </p>
-        <p className="mt-5 font-mono text-xs bg-white border rounded-lg px-4 py-2.5 inline-block text-muted-foreground shadow-sm">
-          {code}
-        </p>
+      <main className="relative z-10 max-w-lg mx-auto px-4 py-32 text-center cf-fade-in">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-3xl border border-white/50 dark:border-slate-700/50 shadow-xl p-10">
+          <IconPackage className="h-20 w-20 text-slate-300 dark:text-slate-700 mx-auto mb-6" stroke={1} />
+          <h2 className="font-heading text-2xl font-bold text-slate-800 dark:text-white mb-3">{pt.notFoundTitle}</h2>
+          <p className="text-base text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
+            {pt.notFoundDesc}
+          </p>
+          <div className="mt-8 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 inline-block shadow-inner">
+            <p className="font-mono text-sm font-bold tracking-widest text-slate-600 dark:text-slate-300">
+              {code}
+            </p>
+          </div>
+        </div>
       </main>
     </>
   );
@@ -372,11 +408,14 @@ export function TrackingPage({ code }: { code: string }) {
   if (state === "rate_limited") return (
     <>
       <style>{STYLES}</style>
+      <AnimatedBackground />
       <Header />
-      <main className="max-w-lg mx-auto px-4 py-20 text-center cf-fade-in">
-        <IconClock className="h-14 w-14 text-amber-400 mx-auto mb-4" stroke={1.5} />
-        <h2 className="font-heading text-xl font-semibold mb-2">Too many requests</h2>
-        <p className="text-sm text-muted-foreground">Please wait a minute before trying again.</p>
+      <main className="relative z-10 max-w-lg mx-auto px-4 py-32 text-center cf-fade-in">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-3xl border border-white/50 dark:border-slate-700/50 shadow-xl p-10">
+          <IconClock className="h-20 w-20 text-amber-400 mx-auto mb-6" stroke={1.2} />
+          <h2 className="font-heading text-2xl font-bold text-slate-800 dark:text-white mb-3">{pt.rateLimitedTitle}</h2>
+          <p className="text-base text-slate-500 dark:text-slate-400">{pt.rateLimitedDesc}</p>
+        </div>
       </main>
     </>
   );
@@ -400,18 +439,19 @@ export function TrackingPage({ code }: { code: string }) {
     </>
   );
 
-  /* Found */
+  /* Success found */
   return (
     <>
       <style>{STYLES}</style>
+      <AnimatedBackground />
       <Header />
-      <main className="max-w-lg mx-auto px-4 py-6 space-y-3">
-        <StatusCard      data={data} />
-        <LiveLocationCard code={code} status={data.status} />
-        <JourneyCard     data={data} />
-        <TimelineCard    data={data} />
+      <main className="relative z-10 max-w-lg mx-auto px-4 pt-28 pb-12 space-y-5">
+        <StatusCard data={data} pt={pt} />
+        <LiveLocationCard code={code} status={data.status} pt={pt} />
+        <JourneyCard data={data} pt={pt} />
+        <TimelineCard data={data} pt={pt} />
 
-        <p className="text-[10px] text-center text-muted-foreground/50 pb-6">
+        <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 pb-6 pt-4 font-medium tracking-wide">
           Powered by CourierFlow · Tanzania
         </p>
       </main>
@@ -421,7 +461,7 @@ export function TrackingPage({ code }: { code: string }) {
 
 /* ── Live Location Card (SSE) ───────────────────────────────────────────── */
 
-function LiveLocationCard({ code, status }: { code: string; status: string }) {
+function LiveLocationCard({ code, status, pt }: { code: string; status: string; pt: DashboardDict["publicTracking"] }) {
   const isActive = status === "PICKED_UP" || status === "IN_TRANSIT";
 
   const [loc, setLoc]           = useState<{ lat: number; lng: number; accuracy: number | null } | null>(null);
@@ -466,33 +506,32 @@ function LiveLocationCard({ code, status }: { code: string; status: string }) {
   const isStale = !!loc && secsAgo >= 60;
 
   return (
-    <div className="bg-white rounded-2xl border shadow-sm overflow-hidden cf-fade-in" style={{ animationDelay: "90ms" }}>
-
+    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-3xl border border-white/50 dark:border-slate-700/50 shadow-xl overflow-hidden cf-fade-in" style={{ animationDelay: "90ms" }}>
       {/* Header bar */}
-      <div className={`px-5 py-3 flex items-center justify-between ${
-        !loc ? "bg-slate-50 border-b border-slate-100"
-        : isLive ? "bg-green-600"
-        : "bg-amber-500"
+      <div className={`px-6 py-4 flex items-center justify-between transition-colors duration-500 ${
+        !loc ? "bg-slate-100/50 dark:bg-slate-800/50 border-b border-slate-200/50 dark:border-slate-700/50"
+        : isLive ? "bg-emerald-500 dark:bg-emerald-600"
+        : "bg-amber-500 dark:bg-amber-600"
       }`}>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           {!loc ? (
-            <div className="h-2.5 w-2.5 rounded-full bg-slate-300 animate-pulse" />
+            <div className="h-3 w-3 rounded-full bg-slate-300 dark:bg-slate-600 animate-pulse" />
           ) : isLive ? (
-            <span className="relative flex h-2.5 w-2.5">
+            <span className="relative flex h-3 w-3">
               <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 animate-ping" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-white" />
             </span>
           ) : (
-            <div className="h-2.5 w-2.5 rounded-full bg-white/70" />
+            <div className="h-3 w-3 rounded-full bg-white/70" />
           )}
-          <span className={`text-sm font-bold ${!loc ? "text-slate-600" : "text-white"}`}>
+          <span className={`text-sm font-bold tracking-wide ${!loc ? "text-slate-700 dark:text-slate-300" : "text-white"}`}>
             {!loc
-              ? "Live Location"
+              ? pt.liveLocationTitle
               : isLive
-                ? "Driver is on the way"
+                ? pt.driverOnWay
                 : isStale
-                  ? `Last seen ${secsAgo < 3600 ? Math.floor(secsAgo / 60) + "m" : Math.floor(secsAgo / 3600) + "h"} ago`
-                  : "Location updating…"}
+                  ? `${pt.lastSeen} ${secsAgo < 3600 ? Math.floor(secsAgo / 60) + "m" : Math.floor(secsAgo / 3600) + "h"} ${pt.ago}`
+                  : pt.locUpdating}
           </span>
         </div>
         {loc && (
@@ -500,37 +539,36 @@ function LiveLocationCard({ code, status }: { code: string; status: string }) {
             href={`https://maps.google.com/?q=${loc.lat},${loc.lng}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-semibold text-white/90 hover:text-white underline underline-offset-2 transition-colors"
+            className="text-xs font-bold text-white/90 hover:text-white transition-colors"
           >
-            Open Maps →
+            {pt.openMaps}
           </a>
         )}
       </div>
 
       {/* Body */}
-      <div className="px-5 py-4">
+      <div className="px-6 py-5">
         {!loc ? (
-          <div className="flex items-start gap-3">
-            <IconTruck className="h-9 w-9 text-cf-primary/30 shrink-0 mt-0.5" stroke={1.5} />
+          <div className="flex items-start gap-4">
+            <IconTruck className="h-10 w-10 text-slate-300 dark:text-slate-600 shrink-0 mt-1" stroke={1.5} />
             <div>
-              <p className="text-sm font-semibold text-cf-foreground">
-                {connected ? "Driver GPS not yet active" : "Connecting to live tracking…"}
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                {connected ? pt.gpsNotActive : pt.connectingLive}
               </p>
-              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                {connected
-                  ? "Location will appear here once the driver starts sharing their GPS."
-                  : "Establishing connection — this takes a few seconds."}
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                {connected ? pt.locWillAppear : pt.establishingConn}
               </p>
             </div>
           </div>
         ) : (
           <div>
-            <p className="font-mono text-sm font-bold text-cf-foreground tabular-nums">
+            <p className="font-mono text-base font-bold text-slate-800 dark:text-slate-200 tabular-nums bg-slate-50 dark:bg-slate-800/50 inline-block px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700/50">
               {loc.lat.toFixed(5)}°&nbsp;&nbsp;{loc.lng.toFixed(5)}°
             </p>
             {loc.accuracy != null && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                GPS accuracy: ±{Math.round(loc.accuracy)}m
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mt-3 flex items-center gap-1.5">
+                <IconMapPin className="h-3.5 w-3.5 shrink-0" />
+                {pt.accuracy}{Math.round(loc.accuracy)}m
               </p>
             )}
           </div>

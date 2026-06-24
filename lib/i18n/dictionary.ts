@@ -288,6 +288,41 @@ export type DashboardDict = {
     assignDriver: string;
     linkCopied: string;
   };
+  publicTracking: {
+    tracking: string;
+    journey: string;
+    statusTimeline: string;
+    from: string;
+    to: string;
+    driver: string;
+    deliveredOn: string;
+    orderCreated: string;
+    driverAssigned: string;
+    pickedUp: string;
+    inTransit: string;
+    delivered: string;
+    now: string;
+    failedMsg: string;
+    cancelledMsg: string;
+    notFoundTitle: string;
+    notFoundDesc: string;
+    rateLimitedTitle: string;
+    rateLimitedDesc: string;
+    errorTitle: string;
+    errorDesc: string;
+    tryAgain: string;
+    liveLocationTitle: string;
+    driverOnWay: string;
+    lastSeen: string;
+    ago: string;
+    locUpdating: string;
+    openMaps: string;
+    gpsNotActive: string;
+    connectingLive: string;
+    locWillAppear: string;
+    establishingConn: string;
+    accuracy: string;
+  };
 };
 
 export const dashboardTranslations: Record<Lang, DashboardDict> = {
@@ -579,6 +614,41 @@ export const dashboardTranslations: Record<Lang, DashboardDict> = {
       assignDriver: "Assign driver",
       linkCopied: "Tracking link copied!",
     },
+    publicTracking: {
+      tracking: "Tracking",
+      journey: "Journey",
+      statusTimeline: "Status Timeline",
+      from: "From",
+      to: "To",
+      driver: "Driver",
+      deliveredOn: "Delivered on",
+      orderCreated: "Order Created",
+      driverAssigned: "Driver Assigned",
+      pickedUp: "Picked Up",
+      inTransit: "In Transit",
+      delivered: "Delivered",
+      now: "Now",
+      failedMsg: "This delivery could not be completed.",
+      cancelledMsg: "This delivery was cancelled.",
+      notFoundTitle: "Tracking code not found",
+      notFoundDesc: "Please double-check the code and try again. Contact the sender if the problem persists.",
+      rateLimitedTitle: "Too many requests",
+      rateLimitedDesc: "Please wait a minute before trying again.",
+      errorTitle: "Something went wrong",
+      errorDesc: "Unable to load tracking info.",
+      tryAgain: "Try again",
+      liveLocationTitle: "Live Location",
+      driverOnWay: "Driver is on the way",
+      lastSeen: "Last seen",
+      ago: "ago",
+      locUpdating: "Location updating…",
+      openMaps: "Open Maps →",
+      gpsNotActive: "Driver GPS not yet active",
+      connectingLive: "Connecting to live tracking…",
+      locWillAppear: "Location will appear here once the driver starts sharing their GPS.",
+      establishingConn: "Establishing connection — this takes a few seconds.",
+      accuracy: "GPS accuracy: ±",
+    },
   },
   sw: {
     nav: {
@@ -868,6 +938,41 @@ export const dashboardTranslations: Record<Lang, DashboardDict> = {
       copyLink: "Nakili kiungo",
       assignDriver: "Panga dereva",
       linkCopied: "Kiungo kimenakiliwa!",
+    },
+    publicTracking: {
+      tracking: "Kifuatiliaji",
+      journey: "Safari",
+      statusTimeline: "Hatua za Mzigo",
+      from: "Kutoka",
+      to: "Kwenda",
+      driver: "Dereva",
+      deliveredOn: "Imefikishwa",
+      orderCreated: "Mzigo Umesajiliwa",
+      driverAssigned: "Dereva Amepangwa",
+      pickedUp: "Mzigo Umechukuliwa",
+      inTransit: "Mzigo Uko Njiani",
+      delivered: "Mzigo Umefika",
+      now: "Sasa",
+      failedMsg: "Mzigo huu umeshindikana kufikishwa.",
+      cancelledMsg: "Mzigo huu umesitishwa.",
+      notFoundTitle: "Namba ya mzigo haijapatikana",
+      notFoundDesc: "Tafadhali hakiki namba uliyoweka kisha jaribu tena. Wasiliana na mtumaji kama tatizo litaendelea.",
+      rateLimitedTitle: "Maombi ni mengi sana",
+      rateLimitedDesc: "Tafadhali subiri kidogo kisha jaribu tena.",
+      errorTitle: "Kuna tatizo limetokea",
+      errorDesc: "Imeshindikana kupata taarifa za mzigo huu.",
+      tryAgain: "Jaribu tena",
+      liveLocationTitle: "Eneo la Sasa",
+      driverOnWay: "Dereva yuko njiani",
+      lastSeen: "Imeonekana mara ya mwisho",
+      ago: "iliyopita",
+      locUpdating: "Inatafuta eneo…",
+      openMaps: "Fungua Ramani →",
+      gpsNotActive: "GPS ya dereva haijawashwa",
+      connectingLive: "Inaunganisha na mfumo…",
+      locWillAppear: "Eneo litaonekana hapa pale dereva atakapowasha GPS.",
+      establishingConn: "Inaunganisha — tafadhali subiri kidogo.",
+      accuracy: "Usahihi wa GPS: ±",
     },
   },
 };
