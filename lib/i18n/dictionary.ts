@@ -188,6 +188,29 @@ export type DashboardDict = {
     noActiveDriverDesc: string;
     noActiveAdminDesc: string;
     activeDeliveries: string;
+    details: {
+      call: string;
+      whatsapp: string;
+      navigate: string;
+      reportIssue: string;
+      issueModal: {
+        title: string;
+        subtitle: string;
+        reason: string;
+        reasonPlaceholder: string;
+        reasons: {
+          customerUnreachable: string;
+          wrongAddress: string;
+          vehicleBreakdown: string;
+          other: string;
+        };
+        notes: string;
+        notesPlaceholder: string;
+        cancel: string;
+        submit: string;
+        submitting: string;
+      };
+    };
   };
   dashboard: {
     bannerTitle: string;
@@ -420,6 +443,29 @@ export const dashboardTranslations: Record<Lang, DashboardDict> = {
       noActiveDriverDesc: "Your assigned deliveries will appear here.",
       noActiveAdminDesc: "No deliveries with status Assigned, Picked Up, or In Transit.",
       activeDeliveries: "Active Deliveries",
+      details: {
+        call: "Call",
+        whatsapp: "WhatsApp",
+        navigate: "Navigate",
+        reportIssue: "Report an Issue",
+        issueModal: {
+          title: "Report Issue",
+          subtitle: "Mark this delivery as failed with a reason.",
+          reason: "REASON",
+          reasonPlaceholder: "Select a reason...",
+          reasons: {
+            customerUnreachable: "Customer not reachable",
+            wrongAddress: "Wrong or incomplete address",
+            vehicleBreakdown: "Vehicle breakdown / Accident",
+            other: "Other (specify below)",
+          },
+          notes: "ADDITIONAL NOTES",
+          notesPlaceholder: "Provide more details about the issue...",
+          cancel: "Cancel",
+          submit: "Report Issue",
+          submitting: "Submitting...",
+        },
+      },
     },
     dashboard: {
       bannerTitle: "Overview",
@@ -650,6 +696,29 @@ export const dashboardTranslations: Record<Lang, DashboardDict> = {
       noActiveDriverDesc: "Vifurushi vyako ulivyopangiwa vitaonekana hapa.",
       noActiveAdminDesc: "Hakuna vifurushi vyenye hali ya Imepangwa, Imechukuliwa, au Njiani.",
       activeDeliveries: "Vifurushi Vinavyosafirishwa",
+      details: {
+        call: "Piga Simu",
+        whatsapp: "WhatsApp",
+        navigate: "Ramani",
+        reportIssue: "Ripoti Tatizo",
+        issueModal: {
+          title: "Ripoti Tatizo",
+          subtitle: "Ripoti kama mzigo umeshindikana kufikishwa.",
+          reason: "SABABU",
+          reasonPlaceholder: "Chagua sababu...",
+          reasons: {
+            customerUnreachable: "Mteja hapatikani kwenye simu",
+            wrongAddress: "Anwani si sahihi / Haieleweki",
+            vehicleBreakdown: "Chombo kimeharibika / Ajali",
+            other: "Nyingine (Fafanua hapa chini)",
+          },
+          notes: "MAELEZO YA ZIADA",
+          notesPlaceholder: "Toa ufafanuzi zaidi kuhusu tatizo...",
+          cancel: "Ghairi",
+          submit: "Tuma Ripoti",
+          submitting: "Inatuma...",
+        },
+      },
     },
     dashboard: {
       bannerTitle: "Muhtasari",

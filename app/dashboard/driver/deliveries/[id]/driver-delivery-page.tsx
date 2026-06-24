@@ -8,9 +8,10 @@ import {
   IconAlertTriangle, IconWifiOff, IconRefresh, IconCheck,
   IconSatellite, IconCloudUpload, IconPhone, IconAlertOctagon,
   IconClipboardCheck, IconUser, IconCamera, IconTrash,
-  IconPackage,
+  IconPackage, IconBrandWhatsapp,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/context";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 
@@ -174,6 +175,9 @@ export function DriverDeliveryPage({
   orgPhone:  string | null;
   orgName:   string;
 }) {
+  const { t } = useLanguage();
+  const dPortal = t.driverPortal;
+
   const [delivery, setDelivery]           = useState(initial);
   const [gpsStatus, setGpsStatus]         = useState<GpsStatus>("idle");
   const [coords, setCoords]               = useState<{ lat: number; lng: number; accuracy: number | null } | null>(null);
@@ -185,6 +189,7 @@ export function DriverDeliveryPage({
   const [submitError,   setSubmitError]  = useState<string | null>(null);
   const [uploadPhase,    setUploadPhase]   = useState<UploadPhase | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showIssueModal, setShowIssueModal] = useState(false);
 
   /* ── New: online / offline / queue state ─────────────────────────────── */
   const [isOnline, setIsOnline]           = useState(true);   // SSR-safe default
@@ -389,7 +394,7 @@ export function DriverDeliveryPage({
 
   /* ── Status update ───────────────────────────────────────────────────── */
 
-  async function changeStatus(newStatus: string) {
+  async function changeStatus(newStatus: string, notes?: string) {
     /* Intercept DELIVERED — show PoD modal instead */
     if (newStatus === "DELIVERED") { setShowPodModal(true); return; }
 
@@ -398,7 +403,7 @@ export function DriverDeliveryPage({
       const res = await fetch(`/api/deliveries/${delivery.id}/status`, {
         method:  "PATCH",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ status: newStatus }),
+        body:    JSON.stringify({ status: newStatus, ...(notes && { notes }) }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -576,7 +581,19 @@ export function DriverDeliveryPage({
           <div className="pt-3 border-t border-slate-100 space-y-0.5">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Recipient</p>
             <p className="text-sm font-semibold text-slate-700">{delivery.recipientName}</p>
-            <p className="text-sm text-slate-500">{delivery.recipientPhone}</p>
+            <p className="text-sm text-slate-500 mb-2">{delivery.recipientPhone}</p>
+            
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <a href={`tel:${delivery.recipientPhone}`} className="flex items-center gap-1.5 rounded-lg bg-emerald-50 text-emerald-700 px-3 py-2 text-xs font-bold ring-1 ring-emerald-200 hover:bg-emerald-100 transition-colors">
+                <IconPhone className="h-4 w-4" /> {dPortal.details.call}
+              </a>
+              <a href={`https://wa.me/${delivery.recipientPhone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-lg bg-[#E7F8F0] text-[#0A8043] px-3 py-2 text-xs font-bold ring-1 ring-[#0A8043]/20 hover:bg-[#D1F1DF] transition-colors">
+                <IconBrandWhatsapp className="h-4 w-4" /> {dPortal.details.whatsapp}
+              </a>
+              <a href={`https://maps.google.com/?q=${encodeURIComponent(delivery.deliveryAddress)}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-lg bg-blue-50 text-blue-700 px-3 py-2 text-xs font-bold ring-1 ring-blue-200 hover:bg-blue-100 transition-colors">
+                <IconNavigation className="h-4 w-4" /> {dPortal.details.navigate}
+              </a>
+            </div>
           </div>
 
           {delivery.notes && (
@@ -603,6 +620,15 @@ export function DriverDeliveryPage({
                 {statusLoading ? "Updating…" : <><IconCheck className="h-4 w-4" strokeWidth={3} />{label}</>}
               </button>
             ))}
+            
+            <button
+              disabled={statusLoading}
+              onClick={() => setShowIssueModal(true)}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-50 text-red-600 font-bold py-3.5 text-sm ring-1 ring-red-200 hover:bg-red-100 active:scale-[0.98] transition-all shadow-sm mt-3"
+            >
+              <IconAlertTriangle className="h-4 w-4" strokeWidth={2.5} />
+              {dPortal.details.reportIssue}
+            </button>
           </div>
         )}
 
@@ -629,6 +655,17 @@ export function DriverDeliveryPage({
           error={submitError}
           onConfirm={(name, notes, photo, sig) => void submitPod(name, notes, photo, sig)}
           onCancel={() => { setShowPodModal(false); setSubmitError(null); setUploadPhase(null); setUploadProgress(0); }}
+        />
+      )}
+
+      {/* ── Issue Modal ── */}
+      {showIssueModal && (
+        <IssueModal
+          onConfirm={(reason, notes) => {
+            setShowIssueModal(false);
+            void changeStatus("FAILED", `${reason}${notes ? ` - ${notes}` : ""}`);
+          }}
+          onCancel={() => setShowIssueModal(false)}
         />
       )}
     </div>
@@ -1584,6 +1621,84 @@ function GpsCard({
         )}
       </div>
 
+    </div>
+  );
+}
+
+/* ── Issue Modal ─────────────────────────────────────────────────────────── */
+
+function IssueModal({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: (reason: string, notes: string) => void;
+  onCancel: () => void;
+}) {
+  const { t } = useLanguage();
+  const m = t.driverPortal.details.issueModal;
+  const [reason, setReason] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isSubmitting, setSubmitting] = useState(false);
+
+  return (
+    <div className="cf-dashboard fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-3">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
+        <div className="bg-red-600 px-5 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
+              <IconAlertTriangle className="h-5 w-5 text-white" strokeWidth={2} />
+            </div>
+            <div>
+              <p className="text-white font-bold text-base leading-tight">{m.title}</p>
+              <p className="text-red-100 text-[11px] mt-0.5">{m.subtitle}</p>
+            </div>
+          </div>
+          <button onClick={onCancel} className="text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/20 transition-colors">
+            <IconX className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="px-5 py-5 space-y-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">{m.reason}</p>
+            <select
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none"
+            >
+              <option value="" disabled>{m.reasonPlaceholder}</option>
+              <option value={m.reasons.customerUnreachable}>{m.reasons.customerUnreachable}</option>
+              <option value={m.reasons.wrongAddress}>{m.reasons.wrongAddress}</option>
+              <option value={m.reasons.vehicleBreakdown}>{m.reasons.vehicleBreakdown}</option>
+              <option value={m.reasons.other}>{m.reasons.other}</option>
+            </select>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">{m.notes}</p>
+            <textarea
+              rows={3}
+              placeholder={m.notesPlaceholder}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none resize-none"
+            />
+          </div>
+        </div>
+
+        <div className="px-5 py-4 bg-slate-50 border-t flex justify-end gap-2">
+          <button onClick={onCancel} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 rounded-lg transition-colors">
+            {m.cancel}
+          </button>
+          <button
+            disabled={!reason || isSubmitting}
+            onClick={() => { setSubmitting(true); onConfirm(reason, notes); }}
+            className="px-5 py-2 text-sm font-bold bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? m.submitting : m.submit}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
