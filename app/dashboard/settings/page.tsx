@@ -51,6 +51,7 @@ export default async function SettingsPage() {
     select: { id: true, role: true, organizationId: true },
   });
   if (!me?.organizationId) redirect("/dashboard");
+  if (me.role === "DRIVER") redirect("/dashboard/driver");
 
   const org = await prisma.organization.findUnique({
     where:  { id: me.organizationId },

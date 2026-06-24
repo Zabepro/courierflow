@@ -1,7 +1,9 @@
 import { DriversManager } from "@/components/drivers/drivers-manager";
 import { PageBanner } from "@/components/layout/page-banner";
+import { requireAdminPage } from "@/lib/auth/server";
 
-export default function DriversPage() {
+export default async function DriversPage() {
+  await requireAdminPage();
   return (
     <div className="space-y-6">
       <PageBanner

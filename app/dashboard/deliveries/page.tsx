@@ -1,7 +1,9 @@
 import { DeliveriesSection } from "@/app/dashboard/deliveries-section";
 import { PageBanner } from "@/components/layout/page-banner";
+import { requireAdminPage } from "@/lib/auth/server";
 
-export default function DeliveriesPage() {
+export default async function DeliveriesPage() {
+  await requireAdminPage();
   return (
     <div className="space-y-6">
       <PageBanner

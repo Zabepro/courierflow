@@ -17,7 +17,7 @@ const TITLES: Record<string, string> = {
   "/dashboard/settings":    "Settings",
 };
 
-export function TopBar() {
+export function TopBar({ role }: { role: string }) {
   const pathname = usePathname();
   const title    = TITLES[pathname] ?? "Dashboard";
 
@@ -25,7 +25,7 @@ export function TopBar() {
     <header className="flex h-14 shrink-0 items-center justify-between border-b bg-white px-6">
       {/* Mobile: show logo (sidebar is hidden); Desktop: show page title */}
       <div className="flex items-center gap-2">
-        <MobileNav />
+        <MobileNav role={role} />
         <Link
           href="/dashboard"
           className="flex items-center gap-2 lg:hidden"

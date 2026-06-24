@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { IconMenu2, IconX, IconTruck } from "@tabler/icons-react";
-import { NAV, PORTAL_NAV, BOTTOM_NAV } from "./nav-config";
+import { navForRole } from "./nav-config";
 import { NavItem } from "./nav-item";
 import { cn } from "@/lib/utils";
 
-export function MobileNav() {
+export function MobileNav({ role }: { role: string }) {
   const [open, setOpen] = useState(false);
+  const { main, bottom } = navForRole(role);
 
   /* Close on Escape + lock body scroll while the drawer is open */
   useEffect(() => {
@@ -74,21 +75,24 @@ export function MobileNav() {
 
         {/* Nav */}
         <nav className="flex-1 space-y-4 overflow-y-auto p-3 pt-4">
-          <div className="space-y-0.5">
-            {NAV.map((item) => <NavItem key={item.href} {...item} onNavigate={close} />)}
-          </div>
-          <div>
-            <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Portals</p>
-            <div className="space-y-0.5">
-              {PORTAL_NAV.map((item) => <NavItem key={item.href} {...item} onNavigate={close} />)}
+          {main.map((section, i) => (
+            <div key={section.label ?? i}>
+              {section.label && (
+                <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">{section.label}</p>
+              )}
+              <div className="space-y-0.5">
+                {section.items.map((item) => <NavItem key={item.href} {...item} onNavigate={close} />)}
+              </div>
             </div>
-          </div>
+          ))}
         </nav>
 
         {/* Bottom */}
-        <div className="space-y-0.5 border-t p-3">
-          {BOTTOM_NAV.map((item) => <NavItem key={item.href} {...item} onNavigate={close} />)}
-        </div>
+        {bottom.length > 0 && (
+          <div className="space-y-0.5 border-t p-3">
+            {bottom.map((item) => <NavItem key={item.href} {...item} onNavigate={close} />)}
+          </div>
+        )}
       </div>
     </div>
   );

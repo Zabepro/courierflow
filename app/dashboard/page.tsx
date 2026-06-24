@@ -3,8 +3,10 @@ import { IconArrowRight } from "@tabler/icons-react";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { PageBanner } from "@/components/layout/page-banner";
 import { DeliveriesSection } from "./deliveries-section";
+import { requireAdminPage } from "@/lib/auth/server";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  await requireAdminPage();
   return (
     <div className="space-y-6">
       {/* Page banner */}

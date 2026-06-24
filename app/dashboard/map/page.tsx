@@ -1,6 +1,8 @@
 import { FleetMap } from "@/components/map/fleet-map";
+import { requireAdminPage } from "@/lib/auth/server";
 
-export default function FleetMapPage() {
+export default async function FleetMapPage() {
+  await requireAdminPage();
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)] -m-6">
       {/* Page header */}

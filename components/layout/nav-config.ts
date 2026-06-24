@@ -25,3 +25,31 @@ export const PORTAL_NAV: NavEntry[] = [
 export const BOTTOM_NAV: NavEntry[] = [
   { href: "/dashboard/settings",   label: "Settings",   icon: IconSettings,        exact: false },
 ];
+
+export type NavSection = { label?: string; items: NavEntry[] };
+
+/**
+ * Navigation shown to each role. Drivers get a focused portal — just their
+ * deliveries — and never see admin/management pages. Admins & viewers get the
+ * full management nav plus the driver portal (for testing) and settings.
+ */
+export function navForRole(role: string): { main: NavSection[]; bottom: NavEntry[] } {
+  if (role === "DRIVER") {
+    return {
+      main: [
+        { items: [
+          { href: "/dashboard/driver", label: "My Deliveries", icon: IconTruck, exact: false },
+        ] },
+      ],
+      bottom: [],
+    };
+  }
+
+  return {
+    main: [
+      { items: NAV },
+      { label: "Portals", items: PORTAL_NAV },
+    ],
+    bottom: BOTTOM_NAV,
+  };
+}
