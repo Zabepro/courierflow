@@ -7,7 +7,8 @@ import {
   IconTruck, IconCalendar, IconAlertCircle, IconExternalLink,
   IconUserCheck, IconClipboardCheck, IconDeviceMobile,
   IconCurrencyDollar, IconPhone, IconRefresh, IconCircleCheck,
-  IconCircleX, IconLoader2, IconBrandWhatsapp,
+  IconCircleX, IconLoader2, IconBrandWhatsapp, IconMessage,
+  IconSend, IconHistory, IconClock,
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { DeliveryStatusBadge } from "./delivery-status-badge";
@@ -374,6 +375,9 @@ export function DeliveryDetailSheet({ delivery, open, onOpenChange, onDeliveryUp
                 </button>
               </div>
             </Section>
+
+            {/* SMS History */}
+            <SmsPanel deliveryId={d.id} />
 
             {/* Terminal notice */}
             {isTerminal && (
@@ -970,6 +974,156 @@ function PaymentPanel({
             )}
           </button>
         </div>
+      </div>
+    </Section>
+  );
+}
+
+/* ── SMS History Panel ───────────────────────────────────────────────────── */
+
+type SmsLog = {
+  id: string;
+  recipient: string;
+  message: string;
+  status: "PENDING" | "SENT" | "DELIVERED" | "FAILED";
+  cost: string | null;
+  createdAt: string;
+  sentAt: string | null;
+};
+
+function SmsPanel({ deliveryId }: { deliveryId: string }) {
+  const [logs, setLogs] = useState<SmsLog[] | null | "loading">("loading");
+  const [retryingId, setRetryingId] = useState<string | null>(null);
+
+  async function loadLogs() {
+    try {
+      const res = await fetch(`/api/deliveries/${deliveryId}/sms`);
+      if (res.ok) {
+        const { data } = await res.json();
+        setLogs(data);
+      } else {
+        setLogs(null);
+      }
+    } catch {
+      setLogs(null);
+    }
+  }
+
+  useEffect(() => {
+    loadLogs();
+  }, [deliveryId]);
+
+  async function handleRetry(smsId: string) {
+    setRetryingId(smsId);
+    try {
+      const res = await fetch(`/api/deliveries/${deliveryId}/sms/${smsId}/retry`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        toast.success("SMS sent successfully!");
+        loadLogs();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to resend SMS");
+        loadLogs();
+      }
+    } catch {
+      toast.error("Network error while resending SMS");
+    } finally {
+      setRetryingId(null);
+    }
+  }
+
+  if (logs === "loading") {
+    return (
+      <Section title="SMS Logs">
+        <div className="h-16 rounded-xl bg-slate-100 animate-pulse" />
+      </Section>
+    );
+  }
+
+  if (!logs || logs.length === 0) {
+    return (
+      <Section title="SMS Logs">
+        <div className="flex items-center gap-2.5 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
+          <IconMessage className="h-4 w-4 text-slate-400 shrink-0" />
+          <p className="text-xs text-slate-500 font-medium">Hakuna SMS yoyote iliyotumwa bado</p>
+        </div>
+      </Section>
+    );
+  }
+
+  return (
+    <Section title="SMS Logs">
+      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden divide-y divide-slate-100">
+        <div className="flex items-center gap-2 bg-slate-50 px-4 py-3 border-b border-slate-200">
+          <div className="bg-cf-primary/10 p-1.5 rounded-lg">
+            <IconHistory className="h-4 w-4 text-cf-primary shrink-0" strokeWidth={2} />
+          </div>
+          <p className="text-slate-700 text-xs font-bold tracking-wide">HISTORIA YA MESEJI</p>
+        </div>
+        {(logs as SmsLog[]).map((log) => {
+          const isFailed = log.status === "FAILED";
+          const isSent = log.status === "SENT" || log.status === "DELIVERED";
+          return (
+            <div key={log.id} className={cn("p-4 transition-colors", isFailed ? "bg-red-50/50" : "")}>
+              <div className="flex items-start justify-between gap-3 mb-2.5">
+                <div className="flex items-center gap-2.5">
+                  <div className={cn(
+                    "flex items-center justify-center h-7 w-7 rounded-full shadow-sm border",
+                    isSent ? "bg-emerald-100 text-emerald-600 border-emerald-200" :
+                    isFailed ? "bg-red-100 text-red-600 border-red-200" :
+                    "bg-amber-100 text-amber-600 border-amber-200"
+                  )}>
+                    {isSent ? <IconCheck className="h-4 w-4" stroke={2.5} /> :
+                     isFailed ? <IconX className="h-4 w-4" stroke={2.5} /> :
+                     <IconClock className="h-4 w-4 animate-pulse" stroke={2.5} />}
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold font-mono text-slate-700 block">{log.recipient}</span>
+                    <span className={cn(
+                      "text-[10px] font-bold uppercase tracking-widest mt-0.5 block",
+                      isSent ? "text-emerald-600" : isFailed ? "text-red-600" : "text-amber-600"
+                    )}>
+                      {isSent ? "IMEFANIKIWA" : isFailed ? "IMEFELI" : "INASUBIRI"}
+                    </span>
+                  </div>
+                </div>
+                {isFailed && (
+                  <button
+                    onClick={() => handleRetry(log.id)}
+                    disabled={retryingId === log.id}
+                    className="shrink-0 flex items-center gap-1.5 rounded-lg bg-red-100 hover:bg-red-200 border border-red-200 text-red-700 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
+                  >
+                    {retryingId === log.id ? (
+                      <><IconLoader2 className="h-3 w-3 animate-spin" /> Inatuma</>
+                    ) : (
+                      <><IconSend className="h-3 w-3" /> Tuma Tena</>
+                    )}
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed mb-3 bg-slate-50/80 rounded-xl p-3 border border-slate-100 shadow-sm relative">
+                <span className="absolute -left-1.5 top-3 w-3 h-3 bg-slate-50 border-l border-b border-slate-100 rotate-45" />
+                <span className="relative z-10">{log.message}</span>
+              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  <IconCalendar className="h-3 w-3" />
+                  {new Date(log.createdAt).toLocaleDateString("en-TZ", {
+                    day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
+                  })}
+                </p>
+                {log.cost && (
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 shadow-sm flex items-center gap-1">
+                    <IconCurrencyDollar className="h-3 w-3" />
+                    Gharama: TZS {log.cost}
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </Section>
   );
