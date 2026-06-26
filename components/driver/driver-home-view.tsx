@@ -101,12 +101,22 @@ export function DriverHomeView({
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Header banner */}
-      <TranslatedBanner
-        pageKey="driverPortal"
-        image="/banners/driver.jpg"
-        dynamicName={userName || undefined}
-        alt="Delivery rider on a motorcycle"
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <TranslatedBanner
+          pageKey="driverPortal"
+          image="/banners/driver.jpg"
+          dynamicName={userName || undefined}
+          alt="Delivery rider on a motorcycle"
+        />
+        {isDriver && (
+          <div className="flex items-center gap-3 bg-white dark:bg-slate-900 px-4 py-3 rounded-xl shadow-sm border border-slate-100 dark:border-white/10 shrink-0">
+            <span className={`text-sm font-bold tracking-wide uppercase ${isOnline ? "text-emerald-600 dark:text-emerald-500" : "text-slate-400 dark:text-slate-500"}`}>
+              {isOnline ? "Online" : "Offline"}
+            </span>
+            <Switch checked={isOnline} onCheckedChange={toggleStatus} disabled={toggling} />
+          </div>
+        )}
+      </div>
 
       {/* Stat strip */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
