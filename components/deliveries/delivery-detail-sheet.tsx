@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { DeliveryStatusBadge } from "./delivery-status-badge";
 import { AssignDriverDialog } from "./assign-driver-dialog";
 import { cn, formatTZS } from "@/lib/utils";
+import { RouteMap, type LatLng } from "@/components/map/route-map";
 import type { ApiDelivery } from "./types";
 import type { DeliveryStatus } from "@/lib/generated/prisma/client";
 
@@ -441,9 +442,25 @@ export function DeliveryDetailSheet({ delivery, open, onOpenChange, onDeliveryUp
 
 function LocationPanel({ deliveryId, trackingCode, deliveryAddress, city }: { deliveryId: string; trackingCode: string; deliveryAddress: string; city: string | null }) {
   const [loc, setLoc]             = useState<{ lat: number; lng: number; accuracy: number | null } | null>(null);
+  const [geo, setGeo]             = useState<{ pickup: LatLng | null; dropoff: LatLng | null; plannedRoute: LatLng[] | null } | null>(null);
+  const [trail, setTrail]         = useState<LatLng[]>([]);
   const [connected, setConnected] = useState(false);
   const [secsAgo, setSecsAgo]     = useState(0);
   const lastUpdateRef             = useRef<Date | null>(null);
+
+  /* Planned route + pickup/dropoff + trail so far (one-shot) */
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/deliveries/${deliveryId}/route`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { pickup: LatLng | null; dropoff: LatLng | null; plannedRoute: LatLng[] | null; trail: LatLng[] } | null) => {
+        if (cancelled || !d) return;
+        setGeo({ pickup: d.pickup, dropoff: d.dropoff, plannedRoute: d.plannedRoute });
+        if (Array.isArray(d.trail)) setTrail(d.trail);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [deliveryId]);
 
   useEffect(() => {
     const es = new EventSource(`/api/location/stream/${deliveryId}`);
@@ -451,7 +468,13 @@ function LocationPanel({ deliveryId, trackingCode, deliveryAddress, city }: { de
       const data = JSON.parse(e.data as string) as { lat?: number | null; lng?: number; accuracy?: number | null };
       setConnected(true);
       if (data.lat != null && data.lng != null) {
-        setLoc({ lat: data.lat, lng: data.lng, accuracy: data.accuracy ?? null });
+        const p = { lat: data.lat, lng: data.lng };
+        setLoc({ ...p, accuracy: data.accuracy ?? null });
+        setTrail((prev) => {
+          const last = prev[prev.length - 1];
+          if (last && last.lat === p.lat && last.lng === p.lng) return prev;
+          return [...prev, p];
+        });
         lastUpdateRef.current = new Date();
         setSecsAgo(0);
       }
@@ -535,13 +558,22 @@ function LocationPanel({ deliveryId, trackingCode, deliveryAddress, city }: { de
               Directions →
             </a>
           </div>
+          {/* Live route map */}
+          <RouteMap
+            pickup={geo?.pickup}
+            dropoff={geo?.dropoff}
+            plannedRoute={geo?.plannedRoute}
+            trail={trail}
+            driver={{ lat: loc.lat, lng: loc.lng }}
+            height="190px"
+          />
           {/* Coordinates */}
-          <div className={cn("px-3.5 py-3", isLive ? "bg-green-50" : "bg-amber-50")}>
-            <p className="font-mono text-sm font-bold text-slate-800 tabular-nums">
+          <div className={cn("flex items-end justify-between px-3.5 py-2.5", isLive ? "bg-green-50" : "bg-amber-50")}>
+            <p className="font-mono text-[13px] font-bold text-slate-800 tabular-nums">
               {loc.lat.toFixed(6)}, {loc.lng.toFixed(6)}
             </p>
             {loc.accuracy != null && (
-              <p className="text-[11px] text-slate-500 mt-0.5">±{Math.round(loc.accuracy)}m accuracy</p>
+              <p className="text-[11px] font-medium text-slate-500">±{Math.round(loc.accuracy)}m</p>
             )}
           </div>
         </div>
