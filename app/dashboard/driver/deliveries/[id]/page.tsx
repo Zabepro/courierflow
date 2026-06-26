@@ -44,6 +44,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       delivery={serialized}
       orgPhone={delivery.organization.phone ?? null}
       orgName={delivery.organization.name}
+      isDriver={user.role === "DRIVER"}
     />
   );
 }

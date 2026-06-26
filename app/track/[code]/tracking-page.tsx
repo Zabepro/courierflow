@@ -450,7 +450,7 @@ export function TrackingPage({ code }: { code: string }) {
       <Header />
       <main className="relative z-10 max-w-lg mx-auto px-4 pt-28 pb-12 space-y-5">
         <StatusCard data={data} pt={pt} />
-        <LiveLocationCard code={code} status={data.status} pt={pt} />
+        <LiveLocationCard code={code} status={data.status} pt={pt} address={data.deliveryAddress} city={data.city} />
         <JourneyCard data={data} pt={pt} />
         <TimelineCard data={data} pt={pt} />
 
@@ -464,7 +464,7 @@ export function TrackingPage({ code }: { code: string }) {
 
 /* ── Live Location Card (SSE) ───────────────────────────────────────────── */
 
-function LiveLocationCard({ code, status, pt }: { code: string; status: string; pt: DashboardDict["publicTracking"] }) {
+function LiveLocationCard({ code, status, pt, address, city }: { code: string; status: string; pt: DashboardDict["publicTracking"]; address: string; city: string | null }) {
   const isActive = status === "PICKED_UP" || status === "IN_TRANSIT";
 
   const [loc, setLoc]           = useState<{ lat: number; lng: number; accuracy: number | null } | null>(null);
@@ -567,7 +567,7 @@ function LiveLocationCard({ code, status, pt }: { code: string; status: string; 
           </div>
         ) : (
           <div className="h-full w-full relative">
-            <LiveMap lat={loc.lat} lng={loc.lng} accuracy={loc.accuracy} />
+            <LiveMap lat={loc.lat} lng={loc.lng} accuracy={loc.accuracy} address={address} city={city} />
             {loc.accuracy != null && (
               <div className="absolute bottom-3 left-3 z-10">
                 <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg shadow-sm border border-slate-200/50 dark:border-slate-700/50">

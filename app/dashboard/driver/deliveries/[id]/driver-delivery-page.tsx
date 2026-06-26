@@ -170,12 +170,14 @@ export function DriverDeliveryPage({
   delivery: initial,
   orgPhone,
   orgName,
+  isDriver = true,
 }: {
   delivery:  DeliveryData;
   orgPhone:  string | null;
   orgName:   string;
+  isDriver?: boolean;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const dPortal = t.driverPortal;
 
   const [delivery, setDelivery]           = useState(initial);
@@ -403,6 +405,11 @@ export function DriverDeliveryPage({
   /* ── Status update ───────────────────────────────────────────────────── */
 
   async function changeStatus(newStatus: string, notes?: string) {
+    if (!isDriver) {
+      toast.error("Admins cannot change driver statuses here.");
+      return;
+    }
+
     /* Intercept DELIVERED — show PoD modal instead */
     if (newStatus === "DELIVERED") { setShowPodModal(true); return; }
 
@@ -422,6 +429,12 @@ export function DriverDeliveryPage({
       setDelivery((d) => ({ ...d, ...updated }));
       toast.success(`Updated to ${newStatus.replace("_", " ").toLowerCase()}`);
       if (newStatus === "PICKED_UP" && gpsStatus === "idle") startGps();
+
+      /* Automatically open map when IN_TRANSIT */
+      if (newStatus === "IN_TRANSIT") {
+        const dest = encodeURIComponent(`${delivery.deliveryAddress}${delivery.city ? `, ${delivery.city}` : ""}`);
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}`, "_blank");
+      }
     } catch {
       toast.error("Network error — please try again");
     } finally {
@@ -509,6 +522,13 @@ export function DriverDeliveryPage({
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-800">
+      {/* Admin banner */}
+      {!isDriver && (
+        <div className="bg-blue-500 px-4 py-2 text-center text-[11px] font-bold tracking-wide uppercase text-white shadow-sm flex items-center justify-center gap-2">
+          <IconAlertOctagon className="h-3.5 w-3.5" />
+          {lang === "sw" ? "Uko kwenye mfumo wa admin - Hauruhusiwi kubadilisha hapa" : "Admin view - Driver actions disabled"}
+        </div>
+      )}
 
       {/* Sticky header */}
       <div className="sticky top-0 z-20 bg-white border-b shadow-sm">
@@ -600,7 +620,7 @@ export function DriverDeliveryPage({
         </div>
 
         {/* Status update */}
-        {transitions.length > 0 && (
+        {isDriver && transitions.length > 0 && (
           <div className="space-y-2">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-1">Update Status</p>
             {transitions.map(({ status, label }) => (
