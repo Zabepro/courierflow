@@ -28,6 +28,11 @@ export const createDeliverySchema = z.object({
   priority:        z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).default("NORMAL"),
   fee:             z.coerce.number().positive("Fee must be a positive number").optional(),
   scheduledAt:     dateString.optional(),
+  // Coordinates captured from the address picker (best-effort, optional).
+  pickupLat:       z.coerce.number().min(-90).max(90).optional(),
+  pickupLng:       z.coerce.number().min(-180).max(180).optional(),
+  deliveryLat:     z.coerce.number().min(-90).max(90).optional(),
+  deliveryLng:     z.coerce.number().min(-180).max(180).optional(),
 });
 
 export const deliveryFiltersSchema = z.object({

@@ -6,6 +6,7 @@ import { createDeliverySchema, deliveryFiltersSchema } from "@/lib/validations/d
 import { generateTrackingCode } from "@/lib/utils";
 import { sendDeliverySms } from "@/lib/sms/send";
 import { smsMessages } from "@/lib/sms/messages";
+import { getRoute } from "@/lib/geo/geocode";
 
 // ── GET /api/deliveries ────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
@@ -110,6 +111,17 @@ export async function POST(req: NextRequest) {
 
   const { fee, scheduledAt, ...rest } = parsed.data;
 
+  // If the address picker captured both endpoints, precompute the road route
+  // now so every map has it instantly — no lazy geocoding needed later.
+  let plannedRoute: { lat: number; lng: number }[] | undefined;
+  if (rest.pickupLat != null && rest.pickupLng != null && rest.deliveryLat != null && rest.deliveryLng != null) {
+    const route = await getRoute(
+      { lat: rest.pickupLat, lng: rest.pickupLng },
+      { lat: rest.deliveryLat, lng: rest.deliveryLng },
+    );
+    if (route) plannedRoute = route;
+  }
+
   const delivery = await prisma.delivery.create({
     data: {
       ...rest,
@@ -117,6 +129,7 @@ export async function POST(req: NextRequest) {
       trackingCode,
       fee:         fee          != null ? String(fee)          : null,
       scheduledAt: scheduledAt  != null ? new Date(scheduledAt) : null,
+      ...(plannedRoute ? { plannedRoute } : {}),
     },
     include: {
       driver: { select: { id: true, name: true, phone: true } },

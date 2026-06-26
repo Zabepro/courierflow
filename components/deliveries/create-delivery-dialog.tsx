@@ -67,6 +67,9 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
   const [submitting, setSubmit] = useState(false);
   const [locating, setLocating] = useState(false);
   const [geoMsg, setGeoMsg]     = useState<string | null>(null);
+  // Coordinates captured from the picker/GPS — stored so the maps never need
+  // to re-geocode the address later.
+  const [coords, setCoords]     = useState<{ pickupLat?: number; pickupLng?: number; deliveryLat?: number; deliveryLng?: number }>({});
 
   const PRIORITIES: { value: Priority; label: string; dot: string; active: string }[] = [
     { value: "LOW",    label: d.priority.low,    dot: "bg-slate-400",  active: "border-slate-400  bg-slate-50  text-slate-700" },
@@ -77,6 +80,9 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
 
   function set(k: keyof FormData, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
+    // Typing over an address invalidates any coordinates we'd captured for it.
+    if (k === "pickupAddress")   setCoords((c) => ({ ...c, pickupLat: undefined, pickupLng: undefined }));
+    if (k === "deliveryAddress") setCoords((c) => ({ ...c, deliveryLat: undefined, deliveryLng: undefined }));
     if (errors?.[k]) setErrors((e) => e ? { ...e, [k]: undefined } : null);
   }
 
@@ -93,6 +99,8 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
+        let resolvedAddr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        let resolvedCity: string | undefined;
         try {
           const res  = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
@@ -101,20 +109,16 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
           const data = await res.json();
           const addr = (data?.display_name as string | undefined)?.trim();
           if (addr) {
-            setForm((f) => {
-              const a    = data.address ?? {};
-              const city = a.city ?? a.town ?? a.village ?? a.county ?? f.city;
-              return { ...f, pickupAddress: addr, city: city || f.city };
-            });
-            setErrors((e) => e ? { ...e, pickupAddress: undefined } : null);
-          } else {
-            set("pickupAddress", `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+            resolvedAddr = addr;
+            const a = data.address ?? {};
+            resolvedCity = a.city ?? a.town ?? a.village ?? a.county;
           }
-        } catch {
-          set("pickupAddress", `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
-        } finally {
-          setLocating(false);
-        }
+        } catch { /* keep the raw coordinates as the address */ }
+        // The GPS fix is the exact pickup point — store it directly.
+        setForm((f) => ({ ...f, pickupAddress: resolvedAddr, city: resolvedCity || f.city }));
+        setCoords((c) => ({ ...c, pickupLat: lat, pickupLng: lng }));
+        setErrors((e) => e ? { ...e, pickupAddress: undefined } : null);
+        setLocating(false);
       },
       (err) => {
         setLocating(false);
@@ -149,6 +153,7 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
           fee:   form.fee   ? Number(form.fee) : undefined,
           city:  form.city  || undefined,
           notes: form.notes || undefined,
+          ...coords,
         }),
       });
       const data = await res.json();
@@ -159,6 +164,7 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
       }
       onCreated(data as ApiDelivery);
       setForm(DEFAULT);
+      setCoords({});
       setErrors(null);
       setGeoMsg(null);
       toast.success("Delivery created successfully");
@@ -322,8 +328,9 @@ export function CreateDeliveryDialog({ open, onOpenChange, onCreated }: Props) {
                       <AddressAutocomplete
                         value={form.deliveryAddress}
                         onChange={(v) => set("deliveryAddress", v)}
-                        onSelect={(addr, city) => {
+                        onSelect={(addr, city, lat, lng) => {
                           setForm((f) => ({ ...f, deliveryAddress: addr, city: city || f.city }));
+                          setCoords((c) => ({ ...c, deliveryLat: lat, deliveryLng: lng }));
                           setErrors((e) => e ? { ...e, deliveryAddress: undefined } : null);
                         }}
                         placeholder={d.deliveryAddress}

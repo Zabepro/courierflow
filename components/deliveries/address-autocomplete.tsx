@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { IconMapPin } from "@tabler/icons-react";
 
-type Suggestion = { display_name: string; address?: Record<string, string> };
+type Suggestion = { display_name: string; lat?: string; lon?: string; address?: Record<string, string> };
 
 /**
  * Type-to-search address input. As the user types, it queries OpenStreetMap
@@ -16,7 +16,7 @@ export function AddressAutocomplete({
 }: {
   value:       string;
   onChange:    (v: string) => void;
-  onSelect:    (address: string, city: string | null) => void;
+  onSelect:    (address: string, city: string | null, lat?: number, lng?: number) => void;
   placeholder?: string;
   className?:  string;
 }) {
@@ -56,7 +56,14 @@ export function AddressAutocomplete({
     skipRef.current = true;
     const a    = s.address ?? {};
     const city = a.city ?? a.town ?? a.village ?? a.county ?? null;
-    onSelect(s.display_name, city);
+    const lat  = s.lat ? parseFloat(s.lat) : undefined;
+    const lng  = s.lon ? parseFloat(s.lon) : undefined;
+    onSelect(
+      s.display_name,
+      city,
+      Number.isFinite(lat) ? lat : undefined,
+      Number.isFinite(lng) ? lng : undefined,
+    );
     setSuggestions([]);
     setOpen(false);
   }

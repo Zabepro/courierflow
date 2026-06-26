@@ -275,7 +275,7 @@ export function DeliveryDetailSheet({ delivery, open, onOpenChange, onDeliveryUp
 
             {/* Live Location — only for active deliveries */}
             {(d.status === "PICKED_UP" || d.status === "IN_TRANSIT") && (
-              <LocationPanel deliveryId={d.id} trackingCode={d.trackingCode} />
+              <LocationPanel deliveryId={d.id} trackingCode={d.trackingCode} deliveryAddress={d.deliveryAddress} city={d.city} />
             )}
 
             {/* Driver Portal banner — IN_TRANSIT: delivery must be confirmed via PoD */}
@@ -439,7 +439,7 @@ export function DeliveryDetailSheet({ delivery, open, onOpenChange, onDeliveryUp
 
 /* ── Location Panel (SSE — admin view) ───────────────────────────────────── */
 
-function LocationPanel({ deliveryId, trackingCode }: { deliveryId: string; trackingCode: string }) {
+function LocationPanel({ deliveryId, trackingCode, deliveryAddress, city }: { deliveryId: string; trackingCode: string; deliveryAddress: string; city: string | null }) {
   const [loc, setLoc]             = useState<{ lat: number; lng: number; accuracy: number | null } | null>(null);
   const [connected, setConnected] = useState(false);
   const [secsAgo, setSecsAgo]     = useState(0);
@@ -527,12 +527,12 @@ function LocationPanel({ deliveryId, trackingCode }: { deliveryId: string; track
               </span>
             </div>
             <a
-              href={`https://maps.google.com/?q=${loc.lat},${loc.lng}`}
+              href={`https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=${loc.lat},${loc.lng}&destination=${encodeURIComponent(`${deliveryAddress}${city ? `, ${city}` : ""}`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-white/90 hover:text-white text-xs font-semibold transition-colors"
             >
-              Open Maps →
+              Directions →
             </a>
           </div>
           {/* Coordinates */}
