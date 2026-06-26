@@ -641,7 +641,7 @@ export function DriverDeliveryPage({
               <a href={`https://wa.me/${delivery.recipientPhone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-lg bg-[#E7F8F0] text-[#0A8043] px-3 py-2 text-xs font-bold ring-1 ring-[#0A8043]/20 hover:bg-[#D1F1DF] transition-colors">
                 <IconBrandWhatsapp className="h-4 w-4" /> {dPortal.details.whatsapp}
               </a>
-              <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${delivery.deliveryAddress}${delivery.city ? `, ${delivery.city}` : ""}`)}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-lg bg-blue-50 text-blue-700 px-3 py-2 text-xs font-bold ring-1 ring-blue-200 hover:bg-blue-100 transition-colors">
+              <a href={`https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${geo?.dropoff ? `${geo.dropoff.lat},${geo.dropoff.lng}` : encodeURIComponent(`${delivery.deliveryAddress}${delivery.city ? `, ${delivery.city}` : ""}`)}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-lg bg-blue-50 text-blue-700 px-3 py-2 text-xs font-bold ring-1 ring-blue-200 hover:bg-blue-100 transition-colors">
                 <IconNavigation className="h-4 w-4" /> {dPortal.details.navigate}
               </a>
             </div>
