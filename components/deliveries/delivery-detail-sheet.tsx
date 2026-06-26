@@ -31,14 +31,9 @@ type Btn = { status: DeliveryStatus; label: string; danger?: boolean };
 const TRANSITIONS: Partial<Record<DeliveryStatus, Btn[]>> = {
   PENDING:    [],
   ASSIGNED:   [
-    { status: "PICKED_UP",  label: "Mark as Picked Up" },
     { status: "CANCELLED",  label: "Cancel Delivery",   danger: true },
   ],
-  PICKED_UP:  [{ status: "IN_TRANSIT", label: "Mark In Transit" }],
   /* DELIVERED is intentionally removed — driver must submit Proof of Delivery (EC-14) */
-  IN_TRANSIT: [
-    { status: "FAILED",    label: "Mark as Failed",    danger: true },
-  ],
 };
 
 /* ── Avatar with initials ────────────────────────────────────────────────── */
@@ -1045,9 +1040,9 @@ function SmsPanel({ deliveryId }: { deliveryId: string }) {
   if (!logs || logs.length === 0) {
     return (
       <Section title="SMS Logs">
-        <div className="flex items-center gap-2.5 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
-          <IconMessage className="h-4 w-4 text-slate-400 shrink-0" />
-          <p className="text-xs text-slate-500 font-medium">Hakuna SMS yoyote iliyotumwa bado</p>
+        <div className="flex items-center gap-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 px-4 py-3">
+          <IconMessage className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Hakuna SMS yoyote iliyotumwa bado</p>
         </div>
       </Section>
     );
@@ -1055,35 +1050,38 @@ function SmsPanel({ deliveryId }: { deliveryId: string }) {
 
   return (
     <Section title="SMS Logs">
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden divide-y divide-slate-100">
-        <div className="flex items-center gap-2 bg-slate-50 px-4 py-3 border-b border-slate-200">
-          <div className="bg-cf-primary/10 p-1.5 rounded-lg">
-            <IconHistory className="h-4 w-4 text-cf-primary shrink-0" strokeWidth={2} />
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/50 shadow-sm">
+        <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-700/50">
+          <div className="flex items-center gap-2.5">
+            <div className="bg-cf-primary/10 dark:bg-cf-primary/20 p-1.5 rounded-lg">
+              <IconHistory className="h-4 w-4 text-cf-primary dark:text-cf-primary shrink-0" strokeWidth={2} />
+            </div>
+            <p className="text-slate-700 dark:text-slate-200 text-xs font-bold tracking-wide">HISTORIA YA MESEJI</p>
           </div>
-          <p className="text-slate-700 text-xs font-bold tracking-wide">HISTORIA YA MESEJI</p>
+          <span className="text-[10px] font-bold bg-cf-primary/10 dark:bg-cf-primary/20 text-cf-primary dark:text-cf-primary px-2.5 py-0.5 rounded-full">{logs.length} SMS</span>
         </div>
         {(logs as SmsLog[]).map((log) => {
           const isFailed = log.status === "FAILED";
           const isSent = log.status === "SENT" || log.status === "DELIVERED";
           return (
-            <div key={log.id} className={cn("p-4 transition-colors", isFailed ? "bg-red-50/50" : "")}>
-              <div className="flex items-start justify-between gap-3 mb-2.5">
-                <div className="flex items-center gap-2.5">
+            <div key={log.id} className={cn("p-4 sm:p-5 transition-colors", isFailed ? "bg-red-50/50 dark:bg-red-950/20" : "")}>
+              <div className="flex items-start justify-between gap-3 mb-3.5">
+                <div className="flex items-center gap-3">
                   <div className={cn(
-                    "flex items-center justify-center h-7 w-7 rounded-full shadow-sm border",
-                    isSent ? "bg-emerald-100 text-emerald-600 border-emerald-200" :
-                    isFailed ? "bg-red-100 text-red-600 border-red-200" :
-                    "bg-amber-100 text-amber-600 border-amber-200"
+                    "flex items-center justify-center h-8 w-8 rounded-full shadow-sm border",
+                    isSent ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800" :
+                    isFailed ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800" :
+                    "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800"
                   )}>
                     {isSent ? <IconCheck className="h-4 w-4" stroke={2.5} /> :
                      isFailed ? <IconX className="h-4 w-4" stroke={2.5} /> :
                      <IconClock className="h-4 w-4 animate-pulse" stroke={2.5} />}
                   </div>
                   <div>
-                    <span className="text-xs font-bold font-mono text-slate-700 block">{log.recipient}</span>
+                    <span className="text-xs font-bold font-mono text-slate-800 dark:text-slate-200 block">{log.recipient}</span>
                     <span className={cn(
                       "text-[10px] font-bold uppercase tracking-widest mt-0.5 block",
-                      isSent ? "text-emerald-600" : isFailed ? "text-red-600" : "text-amber-600"
+                      isSent ? "text-emerald-600 dark:text-emerald-400" : isFailed ? "text-red-600 dark:text-red-400" : "text-amber-600 dark:text-amber-400"
                     )}>
                       {isSent ? "IMEFANIKIWA" : isFailed ? "IMEFELI" : "INASUBIRI"}
                     </span>
@@ -1093,31 +1091,33 @@ function SmsPanel({ deliveryId }: { deliveryId: string }) {
                   <button
                     onClick={() => handleRetry(log.id)}
                     disabled={retryingId === log.id}
-                    className="shrink-0 flex items-center gap-1.5 rounded-lg bg-red-100 hover:bg-red-200 border border-red-200 text-red-700 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
+                    className="shrink-0 flex items-center gap-1.5 rounded-lg bg-red-100 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-900/60 border border-red-200 dark:border-red-800/60 text-red-700 dark:text-red-400 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
                   >
                     {retryingId === log.id ? (
-                      <><IconLoader2 className="h-3 w-3 animate-spin" /> Inatuma</>
+                      <><IconLoader2 className="h-3.5 w-3.5 animate-spin" /> Inatuma</>
                     ) : (
-                      <><IconSend className="h-3 w-3" /> Tuma Tena</>
+                      <><IconSend className="h-3.5 w-3.5" /> Tuma Tena</>
                     )}
                   </button>
                 )}
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed mb-3 bg-slate-50/80 rounded-xl p-3 border border-slate-100 shadow-sm relative">
-                <span className="absolute -left-1.5 top-3 w-3 h-3 bg-slate-50 border-l border-b border-slate-100 rotate-45" />
-                <span className="relative z-10">{log.message}</span>
-              </p>
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                  <IconCalendar className="h-3 w-3" />
+              <div className="relative mb-3.5 ml-1">
+                <div className="absolute -left-1.5 top-3 w-3 h-3 bg-slate-50 dark:bg-slate-800 border-l border-b border-slate-200 dark:border-slate-700 rotate-45" />
+                <p className="relative z-10 text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800 rounded-xl rounded-tl-none p-3.5 border border-slate-200 dark:border-slate-700 shadow-sm">
+                  {log.message}
+                </p>
+              </div>
+              <div className="flex items-center justify-between ml-1">
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <IconCalendar className="h-3.5 w-3.5" />
                   {new Date(log.createdAt).toLocaleDateString("en-TZ", {
                     day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
                   })}
                 </p>
                 {log.cost && (
-                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 shadow-sm flex items-center gap-1">
-                    <IconCurrencyDollar className="h-3 w-3" />
-                    Gharama: TZS {log.cost}
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1.5 rounded-md border border-emerald-100 dark:border-emerald-900/50 flex items-center gap-1">
+                    <IconCurrencyDollar className="h-3.5 w-3.5" />
+                    TZS {log.cost}
                   </span>
                 )}
               </div>
