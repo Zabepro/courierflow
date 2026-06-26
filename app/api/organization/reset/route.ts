@@ -53,12 +53,12 @@ export async function POST(req: Request) {
     prisma.smsLog.deleteMany({ where: { organizationId } }),
     prisma.proofOfDelivery.deleteMany({ where: { delivery: { organizationId } } }),
     prisma.delivery.deleteMany({ where: { organizationId } }),
-    prisma.user.deleteMany({ where: { organizationId, role: "DRIVER" } }),
+    prisma.user.deleteMany({ where: { organizationId, id: { not: me.id } } }),
   ]);
 
   console.info(
     `[ORG RESET] org=${organizationId} by=${me.id} — ` +
-    `deliveries=${deliveries.count} drivers=${drivers.count} payments=${payments.count} ` +
+    `deliveries=${deliveries.count} users=${drivers.count} payments=${payments.count} ` +
     `locations=${locations.count} proofs=${proofs.count} sms=${sms.count}`,
   );
 
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     ok: true,
     deleted: {
       deliveries: deliveries.count,
-      drivers:    drivers.count,
+      users:      drivers.count,
       payments:   payments.count,
       locations:  locations.count,
       proofs:     proofs.count,

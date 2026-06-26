@@ -29,7 +29,7 @@ export function DangerZone({ orgName }: { orgName: string }) {
         return;
       }
       const d = (data as { deleted?: Record<string, number> }).deleted ?? {};
-      toast.success(`Cleared ${d.deliveries ?? 0} deliveries & ${d.drivers ?? 0} drivers. Refreshing…`);
+      toast.success(`Cleared ${d.deliveries ?? 0} deliveries & ${d.users ?? 0} users. Refreshing…`);
       setTimeout(() => window.location.reload(), 1400);
     } catch {
       toast.error("Network error — please try again");
@@ -52,7 +52,7 @@ export function DangerZone({ orgName }: { orgName: string }) {
 
       <div className="px-5 py-5 sm:px-6">
         <p className="text-sm leading-relaxed text-slate-600">
-          {s.dangerZoneDesc}
+          {s.dangerZoneDesc} (This deletes ALL users except yourself, freeing up emails for testing!)
         </p>
 
         {!open ? (
