@@ -34,13 +34,21 @@ export async function GET() {
     orderBy: { updatedAt: "desc" },
   });
 
-  // Geocode any delivery still missing coordinates in the background, so the
-  // next poll has its pickup/dropoff + planned route ready (non-blocking).
-  for (const d of deliveries) {
-    if (d.pickupLat == null || d.deliveryLat == null) void ensureDeliveryGeo(d.id);
-  }
+  // Resolve (and cache) each delivery's pickup/dropoff + planned route. We must
+  // await — on serverless a fire-and-forget promise is frozen once we respond,
+  // so the geocode would never persist. Cached after the first hit, so this is
+  // only slow on the very first poll for a brand-new delivery.
+  const result = await Promise.all(deliveries.map(async (d) => {
+    let pickup       = d.pickupLat   != null && d.pickupLng   != null ? { lat: d.pickupLat,   lng: d.pickupLng   } : null;
+    let dropoff      = d.deliveryLat != null && d.deliveryLng != null ? { lat: d.deliveryLat, lng: d.deliveryLng } : null;
+    let plannedRoute = (d.plannedRoute as unknown as LatLng[] | null) ?? null;
+    // Geocode only while coordinates are still missing — once set we stop, so we
+    // never hammer Nominatim/OSRM on the 5s poll loop.
+    if (!pickup || !dropoff) {
+      const geo = await ensureDeliveryGeo(d.id);
+      pickup = geo.pickup; dropoff = geo.dropoff; plannedRoute = geo.plannedRoute;
+    }
 
-  const result = deliveries.map((d) => {
     const latest = d.locationUpdates[0];
     // Oldest → newest, for drawing the path actually driven.
     const trail: LatLng[] = [...d.locationUpdates]
@@ -56,9 +64,9 @@ export async function GET() {
       driverId:      d.driver!.id,
       driverName:    d.driver!.name ?? "Unknown Driver",
       driverPhone:   d.driver!.phone ?? null,
-      pickup:        d.pickupLat   != null && d.pickupLng   != null ? { lat: d.pickupLat,   lng: d.pickupLng   } : null,
-      dropoff:       d.deliveryLat != null && d.deliveryLng != null ? { lat: d.deliveryLat, lng: d.deliveryLng } : null,
-      plannedRoute:  (d.plannedRoute as unknown as LatLng[] | null) ?? null,
+      pickup,
+      dropoff,
+      plannedRoute,
       trail,
       location:      latest
         ? {
@@ -69,7 +77,7 @@ export async function GET() {
           }
         : null,
     };
-  });
+  }));
 
   return NextResponse.json(result);
 }

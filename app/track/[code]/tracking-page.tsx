@@ -562,7 +562,9 @@ function LiveLocationCard({ code, status, pt }: { code: string; status: string; 
         </div>
         {loc && (
           <a
-            href={`https://maps.google.com/?q=${loc.lat},${loc.lng}`}
+            href={route?.dropoff
+              ? `https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=${loc.lat},${loc.lng}&destination=${route.dropoff.lat},${route.dropoff.lng}`
+              : `https://maps.google.com/?q=${loc.lat},${loc.lng}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs font-bold text-white/90 hover:text-white transition-colors"

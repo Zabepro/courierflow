@@ -145,7 +145,7 @@ function popupHtml(pin: DriverPin): string {
         </div>
       </div>
       <div style="margin-top:12px;display:flex;gap:8px">
-        <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" rel="noopener noreferrer" style="flex:1;padding:8px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12px;font-weight:600;color:#475569;text-align:center;text-decoration:none;display:block">Open Maps</a>
+        <a href="${pin.dropoff ? `https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=${lat},${lng}&destination=${pin.dropoff.lat},${pin.dropoff.lng}` : `https://www.google.com/maps?q=${lat},${lng}`}" target="_blank" rel="noopener noreferrer" style="flex:1;padding:8px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12px;font-weight:600;color:#475569;text-align:center;text-decoration:none;display:block">${pin.dropoff ? "Directions" : "Open Maps"}</a>
         <a href="/dashboard/driver/deliveries/${esc(pin.deliveryId)}" target="_blank" rel="noopener noreferrer" style="flex:1;padding:8px;border-radius:8px;background:#0d9488;border:none;font-size:12px;font-weight:600;color:white;text-align:center;text-decoration:none;display:block">Driver View</a>
       </div>
     </div>
