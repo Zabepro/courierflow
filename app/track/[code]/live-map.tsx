@@ -74,11 +74,12 @@ function RouteDrawer({ driverLat, driverLng, address, city, onDestFound }: { dri
   /* 2. Fetch OSRM route dynamically as driver moves */
   useEffect(() => {
     if (!destCoords) return;
+    const currentDest = destCoords;
     let isActive = true;
 
     async function fetchRoute() {
       try {
-        const [dLat, dLng] = destCoords;
+        const [dLat, dLng] = currentDest;
         const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${driverLng},${driverLat};${dLng},${dLat}?overview=full&geometries=geojson`);
         const osrmData = await osrmRes.json();
         if (!isActive || !osrmData.routes || osrmData.routes.length === 0) return;
