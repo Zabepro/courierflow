@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { enforceRateLimit } from "@/lib/security/rate-limit";
 
 /**
  * POST /api/invite/accept  { token }
@@ -14,6 +15,10 @@ import { prisma } from "@/lib/db/prisma";
 export async function POST(req: Request) {
   const { userId: clerkId } = await auth();
   if (!clerkId) return NextResponse.json({ error: "Sign in to accept the invite" }, { status: 401 });
+
+  // Defence-in-depth: stop a signed-in account from hammering invite tokens.
+  const limited = await enforceRateLimit(`rate:invite:accept:${clerkId}`, 10, 60);
+  if (limited) return limited;
 
   const body  = (await req.json().catch(() => null)) as { token?: string } | null;
   const token = body?.token?.trim();
