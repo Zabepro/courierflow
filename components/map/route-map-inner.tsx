@@ -68,7 +68,20 @@ export default function RouteMapInner({
     staticRef.current  = L.layerGroup().addTo(map);
     dynamicRef.current = L.layerGroup().addTo(map);
     mapRef.current     = map;
-    return () => { map.remove(); mapRef.current = null; staticRef.current = null; dynamicRef.current = null; fittedRef.current = false; };
+
+    /* Inside animated panels/sheets the container starts at 0×0, leaving Leaflet
+       with grey tiles. Recompute the size once the layout settles and whenever
+       the container resizes. */
+    const fix = () => map.invalidateSize();
+    const t1 = setTimeout(fix, 250);
+    const t2 = setTimeout(fix, 600);
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(fix) : null;
+    if (ro && containerRef.current) ro.observe(containerRef.current);
+
+    return () => {
+      clearTimeout(t1); clearTimeout(t2); ro?.disconnect();
+      map.remove(); mapRef.current = null; staticRef.current = null; dynamicRef.current = null; fittedRef.current = false;
+    };
   }, []);
 
   /* Static layer: planned route + pickup/dropoff markers */
