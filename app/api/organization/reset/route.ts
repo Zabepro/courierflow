@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { recordAudit } from "@/lib/audit/log";
 
 /**
  * POST /api/organization/reset
@@ -61,6 +62,14 @@ export async function POST(req: Request) {
     `deliveries=${deliveries.count} users=${drivers.count} payments=${payments.count} ` +
     `locations=${locations.count} proofs=${proofs.count} sms=${sms.count}`,
   );
+
+  // Audit logs survive the reset on purpose — a wipe must remain accountable.
+  await recordAudit({
+    organizationId,
+    actorId: me.id, actorName: null,
+    action: "organization.reset", entityType: "organization", entityId: organizationId,
+    details: { deliveries: deliveries.count, drivers: drivers.count, payments: payments.count },
+  });
 
   return NextResponse.json({
     ok: true,

@@ -72,8 +72,26 @@ model Organization {
   deliveries Delivery[]
   smsLogs    SmsLog[]
   payments   Payment[]
+  auditLogs  AuditLog[]
 
   @@map("organizations")
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  actorId        String?  // user who performed the action (null = system)
+  actorName      String?
+  action         String   // e.g. "delivery.status_changed", "driver.assigned"
+  entityType     String   // "delivery" | "driver" | "organization"
+  entityId       String?
+  details        Json?    // extra context (old → new value, etc.)
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, createdAt])
+  @@map("audit_logs")
 }
 
 model User {

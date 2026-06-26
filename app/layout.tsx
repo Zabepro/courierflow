@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
+import { PwaRegister } from "@/components/pwa/pwa-register";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
@@ -46,6 +47,14 @@ export const metadata: Metadata = {
     description: "Dispatch drivers, track parcels live and collect mobile-money payments.",
     images: ["/hero-delivery.jpg"],
   },
+  // Installable-app (PWA) hints
+  applicationName: "CourierFlow",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "CourierFlow" },
+  icons: { apple: "/apple-icon-180.png" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b5d5e",
 };
 
 export default function RootLayout({
@@ -64,6 +73,7 @@ export default function RootLayout({
               <LanguageProvider>
                 {children}
                 <Toaster richColors position="top-right" />
+                <PwaRegister />
               </LanguageProvider>
             </ThemeProvider>
           </PostHogProvider>

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
 import { sendDeliverySms } from "@/lib/sms/send";
 import { smsMessages } from "@/lib/sms/messages";
+import { recordAudit } from "@/lib/audit/log";
 
 const statusSchema = z.object({
   status:      z.enum(["PICKED_UP", "IN_TRANSIT", "DELIVERED", "FAILED", "CANCELLED"]),
@@ -103,6 +104,13 @@ export async function PATCH(
   const updated = await prisma.delivery.findUniqueOrThrow({
     where: { id },
     include: { driver: { select: { id: true, name: true, phone: true } } },
+  });
+
+  await recordAudit({
+    organizationId: user.organizationId,
+    actorId: user.id, actorName: user.name,
+    action: "delivery.status_changed", entityType: "delivery", entityId: id,
+    details: { from: delivery.status, to: newStatus, trackingCode: delivery.trackingCode },
   });
 
   // Non-blocking SMS notifications (US-CUS-02)

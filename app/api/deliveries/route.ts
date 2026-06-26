@@ -7,6 +7,7 @@ import { generateTrackingCode } from "@/lib/utils";
 import { sendDeliverySms } from "@/lib/sms/send";
 import { smsMessages } from "@/lib/sms/messages";
 import { getRoute } from "@/lib/geo/geocode";
+import { recordAudit } from "@/lib/audit/log";
 
 // ── GET /api/deliveries ────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
@@ -134,6 +135,13 @@ export async function POST(req: NextRequest) {
     include: {
       driver: { select: { id: true, name: true, phone: true } },
     },
+  });
+
+  await recordAudit({
+    organizationId: user.organizationId,
+    actorId: user.id, actorName: user.name,
+    action: "delivery.created", entityType: "delivery", entityId: delivery.id,
+    details: { trackingCode, recipientName: delivery.recipientName },
   });
 
   // Non-blocking confirmation SMS to sender (optional — skipped if AT not configured)

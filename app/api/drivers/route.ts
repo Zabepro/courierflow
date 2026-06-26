@@ -5,6 +5,7 @@ import { requireAuth } from "@/lib/auth/server";
 import { enforceRateLimit } from "@/lib/security/rate-limit";
 import { createDriverSchema } from "@/lib/validations/driver";
 import { sendSms } from "@/lib/sms/africas-talking";
+import { recordAudit } from "@/lib/audit/log";
 
 const ACTIVE_STATUSES = new Set(["ASSIGNED", "PICKED_UP", "IN_TRANSIT"]);
 
@@ -109,6 +110,13 @@ export async function POST(req: NextRequest) {
         inviteToken,
       },
       select: { id: true, name: true, phone: true, email: true, createdAt: true },
+    });
+
+    await recordAudit({
+      organizationId: user.organizationId,
+      actorId: user.id, actorName: user.name,
+      action: "driver.added", entityType: "driver", entityId: driver.id,
+      details: { name: driver.name, phone: driver.phone },
     });
 
     /* Build the invite link and SMS it to the driver (best-effort). The driver

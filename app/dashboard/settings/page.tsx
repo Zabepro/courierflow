@@ -32,6 +32,28 @@ export default async function SettingsPage() {
   const canEdit = me.role === "ADMIN";
   const since   = org.createdAt.toLocaleDateString("en-TZ", { month: "short", year: "numeric" });
 
+  // Recent audit trail (graceful — empty if the table isn't there yet).
+  const auditLogs = canEdit
+    ? await prisma.auditLog
+        .findMany({
+          where:   { organizationId: me.organizationId },
+          orderBy: { createdAt: "desc" },
+          take:    20,
+          select:  { id: true, action: true, actorName: true, entityType: true, details: true, createdAt: true },
+        })
+        .then((rows) =>
+          rows.map((r) => ({
+            id:         r.id,
+            action:     r.action,
+            actorName:  r.actorName,
+            entityType: r.entityType,
+            details:    (r.details as Record<string, unknown> | null) ?? null,
+            createdAt:  r.createdAt.toISOString(),
+          })),
+        )
+        .catch(() => [])
+    : [];
+
   return (
     <SettingsView
       org={{
@@ -47,6 +69,7 @@ export default async function SettingsPage() {
       deliveriesCount={org._count.deliveries}
       canEdit={canEdit}
       since={since}
+      auditLogs={auditLogs}
     />
   );
 }

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
 import { sendDeliverySms } from "@/lib/sms/send";
 import { smsMessages } from "@/lib/sms/messages";
+import { recordAudit } from "@/lib/audit/log";
 
 const assignSchema = z.object({
   driverId: z.string().min(1, "Driver ID is required"),
@@ -91,6 +92,15 @@ export async function PUT(
 
       return { delivery: updated, driver, alreadyAssigned: false };
     }, { isolationLevel: "Serializable" });
+
+    if (!result.alreadyAssigned) {
+      await recordAudit({
+        organizationId: user.organizationId,
+        actorId: user.id, actorName: user.name,
+        action: "delivery.driver_assigned", entityType: "delivery", entityId: deliveryId,
+        details: { driverName: result.driver?.name ?? null, trackingCode: result.delivery.trackingCode },
+      });
+    }
 
     // Non-blocking SMS to driver — failure doesn't affect the response
     if (!result.alreadyAssigned && result.driver?.phone) {

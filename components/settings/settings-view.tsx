@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { OrgSettingsForm, OrgData } from "@/components/settings/org-settings-form";
 import { TranslatedBanner } from "@/components/layout/translated-banner";
 import { DangerZone } from "@/components/settings/danger-zone";
+import { ActivityLog, type AuditRow } from "@/components/settings/activity-log";
 import { useLanguage } from "@/lib/i18n/context";
 
 type TeamMember = {
@@ -24,6 +25,7 @@ type SettingsViewProps = {
   deliveriesCount: number;
   canEdit: boolean;
   since: string;
+  auditLogs: AuditRow[];
 };
 
 function initials(name: string | null, email: string): string {
@@ -52,7 +54,7 @@ function StatCard({
   );
 }
 
-export function SettingsView({ org, users, usersCount, deliveriesCount, canEdit, since }: SettingsViewProps) {
+export function SettingsView({ org, users, usersCount, deliveriesCount, canEdit, since, auditLogs }: SettingsViewProps) {
   const { t } = useLanguage();
   const s = t.settings;
 
@@ -123,6 +125,8 @@ export function SettingsView({ org, users, usersCount, deliveriesCount, canEdit,
       </Card>
 
       {/* Danger zone — admin only */}
+      {canEdit && auditLogs.length > 0 && <ActivityLog logs={auditLogs} />}
+
       {canEdit && <DangerZone orgName={org.name} />}
     </div>
   );
