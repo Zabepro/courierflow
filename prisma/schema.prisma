@@ -162,7 +162,7 @@ model LocationUpdate {
   timestamp  DateTime @default(now())
 
   delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
-  driver   User     @relation(fields: [driverId], references: [id])
+  driver   User     @relation(fields: [driverId], references: [id], onDelete: Cascade)
 
   @@index([deliveryId, timestamp])
   @@map("location_updates")
