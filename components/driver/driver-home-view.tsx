@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 import {
   IconTruck, IconMapPin, IconPackage, IconChevronRight,
   IconClockHour4, IconRoute, IconCircleCheck, IconBolt, IconCashBanknote,
@@ -22,6 +25,7 @@ type DeliverySummary = {
 type DriverHomeViewProps = {
   userName: string | null;
   isDriver: boolean;
+  initialIsOnline: boolean;
   deliveries: DeliverySummary[];
   completedToday: number;
   cashCollectedToday: number;
@@ -53,12 +57,31 @@ function StatPill({
 export function DriverHomeView({
   userName,
   isDriver,
+  initialIsOnline,
   deliveries,
   completedToday,
   cashCollectedToday,
   toPickup,
   onTheRoad,
 }: DriverHomeViewProps) {
+  const [isOnline, setIsOnline] = useState(initialIsOnline);
+  const [toggling, setToggling] = useState(false);
+
+  const toggleStatus = async (checked: boolean) => {
+    if (toggling) return;
+    setToggling(true);
+    try {
+      const res = await fetch("/api/driver/status", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isOnline: checked }) });
+      if (!res.ok) throw new Error();
+      setIsOnline(checked);
+      toast.success(checked ? "You are now ONLINE" : "You are now OFFLINE");
+    } catch {
+      toast.error("Failed to update status");
+    } finally {
+      setToggling(false);
+    }
+  };
+
   const { t, lang } = useLanguage();
   const d = t.driverPortal;
   const s = t.deliveries.statuses;

@@ -16,7 +16,7 @@ export async function GET() {
 
   const drivers = await prisma.user.findMany({
     where:  { organizationId: user.organizationId, role: "DRIVER" },
-    select: { id: true, name: true, phone: true, email: true, clerkId: true, inviteToken: true, createdAt: true },
+    select: { id: true, name: true, phone: true, email: true, clerkId: true, inviteToken: true, createdAt: true, isOnline: true },
     orderBy: { name: "asc" },
   });
 
@@ -51,6 +51,7 @@ export async function GET() {
         name:                d.name,
         phone:               d.phone,
         email:               d.email,
+        isOnline:            d.isOnline,
         activeDeliveries:    s.active,      // kept for the assign-driver dialog
         completedDeliveries: s.completed,
         totalDeliveries:     s.total,

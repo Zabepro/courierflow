@@ -14,6 +14,8 @@ export type ApiDelivery = {
   priority: Priority;
   fee: string | null;
   notes: string | null;
+  hasIssue: boolean;
+  issueReason: string | null;
   driverId: string | null;
   driver:   { id: string; name: string | null; phone: string | null } | null;
   payment:  {
@@ -36,6 +38,7 @@ export type ApiDriver = {
   name: string | null;
   phone: string | null;
   activeDeliveries: number;
+  isOnline: boolean;
 };
 
 export type ApiMeta = {

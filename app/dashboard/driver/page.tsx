@@ -10,7 +10,7 @@ export default async function DriverHomePage() {
 
   const user = await prisma.user.findUnique({
     where:  { clerkId: userId },
-    select: { id: true, name: true, role: true, organizationId: true },
+    select: { id: true, name: true, role: true, organizationId: true, isOnline: true },
   });
   if (!user || !user.organizationId) redirect("/sync");
 
@@ -50,6 +50,7 @@ export default async function DriverHomePage() {
     <DriverHomeView
       userName={user.name}
       isDriver={isDriver}
+      initialIsOnline={user.isOnline}
       deliveries={deliveries}
       completedToday={completedToday}
       cashCollectedToday={cashCollectedToday}

@@ -8,7 +8,7 @@ import {
   IconUserCheck, IconClipboardCheck, IconDeviceMobile,
   IconCurrencyDollar, IconPhone, IconRefresh, IconCircleCheck,
   IconCircleX, IconLoader2, IconBrandWhatsapp, IconMessage,
-  IconSend, IconHistory, IconClock, IconReplace,
+  IconSend, IconHistory, IconClock, IconReplace, IconAlertTriangle,
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { DeliveryStatusBadge } from "./delivery-status-badge";

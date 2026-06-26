@@ -104,7 +104,12 @@ export function AssignDriverDialog({ delivery, open, onOpenChange, onAssigned }:
             <div className="space-y-1.5">
               <p className="text-sm font-medium">Select driver</p>
               <div className="space-y-1 max-h-[260px] overflow-y-auto pr-1">
-                {drivers.map((d) => (
+                {drivers
+                  .sort((a, b) => {
+                    if (a.isOnline === b.isOnline) return a.activeDeliveries - b.activeDeliveries;
+                    return a.isOnline ? -1 : 1;
+                  })
+                  .map((d) => (
                   <button
                     key={d.id}
                     type="button"
@@ -116,7 +121,7 @@ export function AssignDriverDialog({ delivery, open, onOpenChange, onAssigned }:
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <div className={`h-2 w-2 rounded-full ${selectedId === d.id ? "bg-cf-primary" : "bg-muted-foreground/30"}`} />
+                      <div className={`h-2.5 w-2.5 rounded-full border border-white shadow-sm ${d.isOnline ? "bg-emerald-500" : "bg-slate-300"}`} title={d.isOnline ? "Online" : "Offline"} />
                       <div>
                         <p className="font-medium leading-tight">{d.name ?? "Unnamed"}</p>
                         {d.phone && <p className="text-xs text-muted-foreground">{d.phone}</p>}
