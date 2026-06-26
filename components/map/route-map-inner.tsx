@@ -8,7 +8,8 @@ export type LatLng = { lat: number; lng: number };
 
 const DAR: [number, number] = [-6.7924, 39.2083];
 const BRAND   = "#0d9488"; // trail (actual path driven)
-const PLANNED = "#94a3b8"; // planned road route
+const ROUTE   = "#1a73e8"; // planned road route (Google-style blue)
+const CASING  = "#ffffff"; // white outline under the route
 const PICKUP  = "#0d9488";
 const DROPOFF = "#ef4444";
 
@@ -77,13 +78,14 @@ export default function RouteMapInner({
     layer.clearLayers();
 
     if (plannedRoute && plannedRoute.length > 1) {
-      L.polyline(plannedRoute.map((p) => [p.lat, p.lng]), {
-        color: PLANNED, weight: 5, opacity: 0.55, dashArray: "1 9", lineCap: "round",
-      }).addTo(layer);
+      const line = plannedRoute.map((p) => [p.lat, p.lng] as [number, number]);
+      // White casing under a bold blue route — the "Google Maps" look.
+      L.polyline(line, { color: CASING, weight: 9, opacity: 0.9, lineCap: "round", lineJoin: "round" }).addTo(layer);
+      L.polyline(line, { color: ROUTE,  weight: 5, opacity: 1,   lineCap: "round", lineJoin: "round" }).addTo(layer);
     } else if (pickup && dropoff) {
       // No road route available — show a straight hint line instead.
       L.polyline([[pickup.lat, pickup.lng], [dropoff.lat, dropoff.lng]], {
-        color: PLANNED, weight: 3, opacity: 0.5, dashArray: "2 8",
+        color: ROUTE, weight: 3, opacity: 0.6, dashArray: "2 9", lineCap: "round",
       }).addTo(layer);
     }
 
@@ -98,9 +100,9 @@ export default function RouteMapInner({
     layer.clearLayers();
 
     if (trail && trail.length > 1) {
-      L.polyline(trail.map((p) => [p.lat, p.lng]), {
-        color: BRAND, weight: 4, opacity: 0.9, lineCap: "round", lineJoin: "round",
-      }).addTo(layer);
+      const line = trail.map((p) => [p.lat, p.lng] as [number, number]);
+      L.polyline(line, { color: CASING, weight: 7, opacity: 0.85, lineCap: "round", lineJoin: "round" }).addTo(layer);
+      L.polyline(line, { color: BRAND,  weight: 4, opacity: 1,    lineCap: "round", lineJoin: "round" }).addTo(layer);
     }
     if (driver) {
       L.marker([driver.lat, driver.lng], { icon: driverIcon(), zIndexOffset: 1000 }).addTo(layer);

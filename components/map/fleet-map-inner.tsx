@@ -219,18 +219,18 @@ export default function FleetMapInner({
     /* Routes layer — planned road route, travelled trail, pickup/drop-off */
     for (const pin of pins) {
       if (pin.plannedRoute && pin.plannedRoute.length > 1) {
-        L.polyline(pin.plannedRoute.map((p) => [p.lat, p.lng]), {
-          color: "#94a3b8", weight: 4, opacity: 0.45, dashArray: "1 8", lineCap: "round",
-        }).addTo(layer);
+        const line = pin.plannedRoute.map((p) => [p.lat, p.lng] as [number, number]);
+        L.polyline(line, { color: "#ffffff", weight: 6,   opacity: 0.85, lineCap: "round", lineJoin: "round" }).addTo(layer);
+        L.polyline(line, { color: "#1a73e8", weight: 3.5, opacity: 0.95, lineCap: "round", lineJoin: "round" }).addTo(layer);
       } else if (pin.pickup && pin.dropoff) {
         L.polyline([[pin.pickup.lat, pin.pickup.lng], [pin.dropoff.lat, pin.dropoff.lng]], {
-          color: "#94a3b8", weight: 2.5, opacity: 0.4, dashArray: "2 8",
+          color: "#1a73e8", weight: 2.5, opacity: 0.5, dashArray: "2 9", lineCap: "round",
         }).addTo(layer);
       }
       if (pin.trail && pin.trail.length > 1) {
-        L.polyline(pin.trail.map((p) => [p.lat, p.lng]), {
-          color: "#0d9488", weight: 3.5, opacity: 0.85, lineCap: "round", lineJoin: "round",
-        }).addTo(layer);
+        const tline = pin.trail.map((p) => [p.lat, p.lng] as [number, number]);
+        L.polyline(tline, { color: "#ffffff", weight: 5.5, opacity: 0.8, lineCap: "round", lineJoin: "round" }).addTo(layer);
+        L.polyline(tline, { color: "#0d9488", weight: 3.5, opacity: 0.95, lineCap: "round", lineJoin: "round" }).addTo(layer);
       }
       if (pin.pickup) {
         L.marker([pin.pickup.lat, pin.pickup.lng], { icon: endpointIcon("#0d9488", "A") }).bindPopup("Pickup").addTo(layer);

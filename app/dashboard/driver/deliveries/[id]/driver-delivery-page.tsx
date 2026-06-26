@@ -629,7 +629,7 @@ export function DriverDeliveryPage({
                 plannedRoute={geo?.plannedRoute}
                 trail={trail}
                 driver={coords ? { lat: coords.lat, lng: coords.lng } : null}
-                height="200px"
+                height="240px"
                 className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700"
               />
             )}

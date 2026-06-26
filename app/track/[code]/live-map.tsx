@@ -81,20 +81,32 @@ export default function LiveMap({
       />
       <BoundsUpdater points={bounds} />
 
-      {/* Planned road route (pickup → drop-off) */}
+      {/* Planned road route (pickup → drop-off) — white casing + bold blue */}
       {plannedRoute && plannedRoute.length > 1 && (
-        <Polyline
-          positions={plannedRoute.map((p) => [p.lat, p.lng])}
-          pathOptions={{ color: "#94a3b8", weight: 5, opacity: 0.5, dashArray: "1 10", lineCap: "round" }}
-        />
+        <>
+          <Polyline
+            positions={plannedRoute.map((p) => [p.lat, p.lng])}
+            pathOptions={{ color: "#ffffff", weight: 9, opacity: 0.9, lineCap: "round", lineJoin: "round" }}
+          />
+          <Polyline
+            positions={plannedRoute.map((p) => [p.lat, p.lng])}
+            pathOptions={{ color: "#1a73e8", weight: 5, opacity: 1, lineCap: "round", lineJoin: "round" }}
+          />
+        </>
       )}
 
-      {/* Trail actually driven so far */}
+      {/* Trail actually driven so far — white casing + green */}
       {trail && trail.length > 1 && (
-        <Polyline
-          positions={trail.map((p) => [p.lat, p.lng])}
-          pathOptions={{ color: "#10b981", weight: 4, opacity: 0.9, lineCap: "round", lineJoin: "round" }}
-        />
+        <>
+          <Polyline
+            positions={trail.map((p) => [p.lat, p.lng])}
+            pathOptions={{ color: "#ffffff", weight: 7, opacity: 0.85, lineCap: "round", lineJoin: "round" }}
+          />
+          <Polyline
+            positions={trail.map((p) => [p.lat, p.lng])}
+            pathOptions={{ color: "#10b981", weight: 4, opacity: 1, lineCap: "round", lineJoin: "round" }}
+          />
+        </>
       )}
 
       {pickup  && <Marker position={[pickup.lat,  pickup.lng]}  icon={endpointIcon("#10b981", "A")} />}
