@@ -450,7 +450,7 @@ export function TrackingPage({ code }: { code: string }) {
       <Header />
       <main className="relative z-10 max-w-lg mx-auto px-4 pt-28 pb-12 space-y-5">
         <StatusCard data={data} pt={pt} />
-        <LiveLocationCard code={code} status={data.status} pt={pt} address={data.deliveryAddress} city={data.city} />
+        <LiveLocationCard code={code} status={data.status} pt={pt} />
         <JourneyCard data={data} pt={pt} />
         <TimelineCard data={data} pt={pt} />
 
@@ -464,13 +464,30 @@ export function TrackingPage({ code }: { code: string }) {
 
 /* ── Live Location Card (SSE) ───────────────────────────────────────────── */
 
-function LiveLocationCard({ code, status, pt, address, city }: { code: string; status: string; pt: DashboardDict["publicTracking"]; address: string; city: string | null }) {
+function LiveLocationCard({ code, status, pt }: { code: string; status: string; pt: DashboardDict["publicTracking"] }) {
   const isActive = status === "PICKED_UP" || status === "IN_TRANSIT";
 
   const [loc, setLoc]           = useState<{ lat: number; lng: number; accuracy: number | null } | null>(null);
+  const [route, setRoute]       = useState<{ pickup: { lat: number; lng: number } | null; dropoff: { lat: number; lng: number } | null; plannedRoute: { lat: number; lng: number }[] | null } | null>(null);
+  const [trail, setTrail]       = useState<{ lat: number; lng: number }[]>([]);
   const [connected, setConnected] = useState(false);
   const [secsAgo, setSecsAgo]   = useState(0);
   const lastUpdateRef           = useRef<Date | null>(null);
+
+  /* One-shot: cached planned route + pickup/dropoff + the trail so far */
+  useEffect(() => {
+    if (!isActive) return;
+    let cancelled = false;
+    fetch(`/api/track/${encodeURIComponent(code)}/route`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { pickup: { lat: number; lng: number } | null; dropoff: { lat: number; lng: number } | null; plannedRoute: { lat: number; lng: number }[] | null; trail: { lat: number; lng: number }[] } | null) => {
+        if (cancelled || !d) return;
+        setRoute({ pickup: d.pickup, dropoff: d.dropoff, plannedRoute: d.plannedRoute });
+        if (Array.isArray(d.trail)) setTrail(d.trail.map((p) => ({ lat: p.lat, lng: p.lng })));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [code, isActive]);
 
   useEffect(() => {
     if (!isActive) return;
@@ -484,7 +501,13 @@ function LiveLocationCard({ code, status, pt, address, city }: { code: string; s
       };
       setConnected(true);
       if (data.active && data.lat != null && data.lng != null) {
+        const p = { lat: data.lat, lng: data.lng };
         setLoc({ lat: data.lat, lng: data.lng, accuracy: data.accuracy ?? null });
+        setTrail((prev) => {
+          const last = prev[prev.length - 1];
+          if (last && last.lat === p.lat && last.lng === p.lng) return prev;
+          return [...prev, p];
+        });
         lastUpdateRef.current = new Date();
         setSecsAgo(0);
       }
@@ -550,7 +573,7 @@ function LiveLocationCard({ code, status, pt, address, city }: { code: string; s
       </div>
 
       {/* Body */}
-      <div className="relative w-full h-[250px] bg-slate-100 dark:bg-slate-800">
+      <div className="relative w-full h-[260px] sm:h-[340px] bg-slate-100 dark:bg-slate-800">
         {!loc ? (
           <div className="absolute inset-0 flex items-center justify-center px-6">
             <div className="flex items-start gap-4">
@@ -567,7 +590,15 @@ function LiveLocationCard({ code, status, pt, address, city }: { code: string; s
           </div>
         ) : (
           <div className="h-full w-full relative">
-            <LiveMap lat={loc.lat} lng={loc.lng} accuracy={loc.accuracy} address={address} city={city} />
+            <LiveMap
+              lat={loc.lat}
+              lng={loc.lng}
+              accuracy={loc.accuracy}
+              pickup={route?.pickup ?? null}
+              dropoff={route?.dropoff ?? null}
+              plannedRoute={route?.plannedRoute ?? null}
+              trail={trail}
+            />
             {loc.accuracy != null && (
               <div className="absolute bottom-3 left-3 z-10">
                 <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg shadow-sm border border-slate-200/50 dark:border-slate-700/50">

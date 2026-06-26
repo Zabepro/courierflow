@@ -108,6 +108,13 @@ model Delivery {
   pickupAddress   String
   deliveryAddress String
   city            String?
+  // Geocoded coordinates for map routing (best-effort, filled lazily via Nominatim)
+  pickupLat       Float?
+  pickupLng       Float?
+  deliveryLat     Float?
+  deliveryLng     Float?
+  // Cached OSRM road route geometry [[lat,lng],…] from pickup → dropoff
+  plannedRoute    Json?
   notes           String?
   hasIssue        Boolean        @default(false)
   issueReason     String?

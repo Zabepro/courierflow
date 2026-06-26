@@ -76,6 +76,16 @@ function makeIcon(name: string, state: GpsState): L.DivIcon {
 }
 
 /* ── Popup HTML ──────────────────────────────────────────────────── */
+function endpointIcon(color: string, letter: string): L.DivIcon {
+  return L.divIcon({
+    className: "",
+    html: `<div style="width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};border:2px solid white;box-shadow:0 2px 7px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center">
+      <span style="transform:rotate(45deg);color:white;font:800 11px system-ui,sans-serif">${letter}</span></div>`,
+    iconSize:   [22, 22],
+    iconAnchor: [11, 22],
+  });
+}
+
 function popupHtml(pin: DriverPin): string {
   const loc   = pin.location!;
   const state = gpsState(loc.ts);
@@ -205,6 +215,32 @@ export default function FleetMapInner({
 
     const active = pins.filter((p) => p.location);
     const pts: [number, number][] = [];
+
+    /* Routes layer — planned road route, travelled trail, pickup/drop-off */
+    for (const pin of pins) {
+      if (pin.plannedRoute && pin.plannedRoute.length > 1) {
+        L.polyline(pin.plannedRoute.map((p) => [p.lat, p.lng]), {
+          color: "#94a3b8", weight: 4, opacity: 0.45, dashArray: "1 8", lineCap: "round",
+        }).addTo(layer);
+      } else if (pin.pickup && pin.dropoff) {
+        L.polyline([[pin.pickup.lat, pin.pickup.lng], [pin.dropoff.lat, pin.dropoff.lng]], {
+          color: "#94a3b8", weight: 2.5, opacity: 0.4, dashArray: "2 8",
+        }).addTo(layer);
+      }
+      if (pin.trail && pin.trail.length > 1) {
+        L.polyline(pin.trail.map((p) => [p.lat, p.lng]), {
+          color: "#0d9488", weight: 3.5, opacity: 0.85, lineCap: "round", lineJoin: "round",
+        }).addTo(layer);
+      }
+      if (pin.pickup) {
+        L.marker([pin.pickup.lat, pin.pickup.lng], { icon: endpointIcon("#0d9488", "A") }).bindPopup("Pickup").addTo(layer);
+        pts.push([pin.pickup.lat, pin.pickup.lng]);
+      }
+      if (pin.dropoff) {
+        L.marker([pin.dropoff.lat, pin.dropoff.lng], { icon: endpointIcon("#ef4444", "B") }).bindPopup("Drop-off").addTo(layer);
+        pts.push([pin.dropoff.lat, pin.dropoff.lng]);
+      }
+    }
 
     for (const pin of active) {
       const { lat, lng, accuracy, ts } = pin.location!;

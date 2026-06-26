@@ -12,6 +12,7 @@ import {
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/context";
+import { RouteMap, type LatLng } from "@/components/map/route-map";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 
@@ -199,6 +200,10 @@ export function DriverDeliveryPage({
   const [isFlushing, setIsFlushing]       = useState(false);
   const [rejectedCount, setRejectedCount] = useState(0);
 
+  /* Route geo (planned route + pickup/dropoff) + travelled trail */
+  const [geo, setGeo]     = useState<{ pickup: LatLng | null; dropoff: LatLng | null; plannedRoute: LatLng[] | null } | null>(null);
+  const [trail, setTrail] = useState<LatLng[]>([]);
+
   const watchIdRef      = useRef<number | null>(null);
   const lastSentTimeRef = useRef<number>(0);
   const isFlushingRef   = useRef(false);
@@ -208,6 +213,30 @@ export function DriverDeliveryPage({
     setIsOnline(navigator.onLine);
     setOfflineQueue(getQueue(initial.id).length);
   }, [initial.id]);
+
+  /* Load planned route + pickup/dropoff + trail so far (non-blocking) */
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/deliveries/${initial.id}/route`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { pickup: LatLng | null; dropoff: LatLng | null; plannedRoute: LatLng[] | null; trail: LatLng[] } | null) => {
+        if (cancelled || !d) return;
+        setGeo({ pickup: d.pickup, dropoff: d.dropoff, plannedRoute: d.plannedRoute });
+        if (Array.isArray(d.trail)) setTrail(d.trail);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [initial.id]);
+
+  /* Extend the local trail as the driver moves */
+  useEffect(() => {
+    if (!coords) return;
+    setTrail((prev) => {
+      const last = prev[prev.length - 1];
+      if (last && Math.abs(last.lat - coords.lat) < 1e-6 && Math.abs(last.lng - coords.lng) < 1e-6) return prev;
+      return [...prev, { lat: coords.lat, lng: coords.lng }];
+    });
+  }, [coords]);
 
   /* Live "X seconds ago" ticker */
   useEffect(() => {
@@ -592,6 +621,19 @@ export function DriverDeliveryPage({
             <p className="text-sm font-semibold text-slate-700">{delivery.recipientName}</p>
             <p className="text-sm text-slate-500 mb-2">{delivery.recipientPhone}</p>
             
+            {/* Live route map */}
+            {(geo?.pickup || geo?.dropoff || trail.length > 0) && (
+              <RouteMap
+                pickup={geo?.pickup}
+                dropoff={geo?.dropoff}
+                plannedRoute={geo?.plannedRoute}
+                trail={trail}
+                driver={coords ? { lat: coords.lat, lng: coords.lng } : null}
+                height="200px"
+                className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700"
+              />
+            )}
+
             <div className="flex flex-wrap items-center gap-2 pt-2">
               <a href={`tel:${delivery.recipientPhone}`} className="flex items-center gap-1.5 rounded-lg bg-emerald-50 text-emerald-700 px-3 py-2 text-xs font-bold ring-1 ring-emerald-200 hover:bg-emerald-100 transition-colors">
                 <IconPhone className="h-4 w-4" /> {dPortal.details.call}

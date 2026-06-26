@@ -30,6 +30,8 @@ function LoadingMapPlaceholder() {
   );
 }
 
+export type FleetLatLng = { lat: number; lng: number };
+
 export type DriverPin = {
   deliveryId:    string;
   trackingCode:  string;
@@ -39,6 +41,10 @@ export type DriverPin = {
   driverId:      string;
   driverName:    string;
   driverPhone:   string | null;
+  pickup:        FleetLatLng | null;
+  dropoff:       FleetLatLng | null;
+  plannedRoute:  FleetLatLng[] | null;
+  trail:         FleetLatLng[];
   location: {
     lat:      number;
     lng:      number;
