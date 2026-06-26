@@ -430,11 +430,7 @@ export function DriverDeliveryPage({
       toast.success(`Updated to ${newStatus.replace("_", " ").toLowerCase()}`);
       if (newStatus === "PICKED_UP" && gpsStatus === "idle") startGps();
 
-      /* Automatically open map when IN_TRANSIT */
-      if (newStatus === "IN_TRANSIT") {
-        const dest = encodeURIComponent(`${delivery.deliveryAddress}${delivery.city ? `, ${delivery.city}` : ""}`);
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}`, "_blank");
-      }
+      /* Removed auto-navigation per user request */
     } catch {
       toast.error("Network error — please try again");
     } finally {

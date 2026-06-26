@@ -45,11 +45,12 @@ function RouteDrawer({ driverLat, driverLng, address, city, onDestFound }: { dri
   const [routeCoords, setRouteCoords] = useState<[number, number][] | null>(null);
   const [destCoords, setDestCoords] = useState<[number, number] | null>(null);
 
+  /* 1. Geocode the destination address */
   useEffect(() => {
     if (!address) return;
     let isActive = true;
 
-    async function fetchRoute() {
+    async function geocode() {
       try {
         const q = encodeURIComponent(`${address}${city ? `, ${city}` : ''}`);
         const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`);
@@ -61,7 +62,23 @@ function RouteDrawer({ driverLat, driverLng, address, city, onDestFound }: { dri
         const dLng = parseFloat(geoData[0].lon);
         setDestCoords([dLat, dLng]);
         onDestFound(dLat, dLng);
+      } catch (err) {
+        console.error("Geocoding error:", err);
+      }
+    }
 
+    geocode();
+    return () => { isActive = false; };
+  }, [address, city, onDestFound]);
+
+  /* 2. Fetch OSRM route dynamically as driver moves */
+  useEffect(() => {
+    if (!destCoords) return;
+    let isActive = true;
+
+    async function fetchRoute() {
+      try {
+        const [dLat, dLng] = destCoords;
         const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${driverLng},${driverLat};${dLng},${dLat}?overview=full&geometries=geojson`);
         const osrmData = await osrmRes.json();
         if (!isActive || !osrmData.routes || osrmData.routes.length === 0) return;
@@ -73,10 +90,11 @@ function RouteDrawer({ driverLat, driverLng, address, city, onDestFound }: { dri
       }
     }
 
+    // Debounce or just fetch immediately? OSRM allows reasonable limits. 
+    // We only ping GPS every 15s anyway.
     fetchRoute();
     return () => { isActive = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, city]); // deliberately ignoring driver coordinates so we don't spam OSRM API on every GPS ping
+  }, [driverLat, driverLng, destCoords]);
 
   return (
     <>
