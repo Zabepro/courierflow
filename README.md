@@ -1,66 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CourierFlow — Delivery Management Platform for Tanzania
 
-## Getting Started
+A full-stack SaaS delivery management platform built for the Tanzanian market. CourierFlow enables businesses to manage courier operations end-to-end — from order creation and driver assignment to real-time tracking, proof-of-delivery uploads, and payment processing via AzamPay and mobile money.
 
-First, run the development server:
+🌐 **Live Demo:** [courierflow-drab.vercel.app](https://courierflow-drab.vercel.app)
+
+---
+
+## ✨ Features
+
+- **Order Management** — Create, assign, and track delivery orders in real-time
+- **Driver Dashboard** — Mobile-optimized interface for drivers to manage pickups and deliveries
+- **Proof of Delivery** — Photo upload system using Cloudflare R2 for delivery confirmation
+- **Payment Integration** — AzamPay MNO (M-Pesa, Airtel, Tigo) payment collection with webhook handling
+- **Audit Logs** — Full activity trail for every order and driver action
+- **Health Checks** — System monitoring and service status endpoints
+- **Installable PWA** — Works offline and can be installed on Android/iOS like a native app
+- **Role-Based Access** — Separate views for admins, dispatchers, and drivers
+- **Real-Time Updates** — Live order status updates without page refresh
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 14, TypeScript, Tailwind CSS |
+| Backend | Next.js API Routes |
+| Database | PostgreSQL + Prisma ORM |
+| Payments | AzamPay (MNO collections) |
+| File Storage | Cloudflare R2 |
+| Deployment | Vercel |
+
+---
+
+## 🚀 Getting Started
 
 ```bash
+# Clone the repository
+git clone https://github.com/Zabepro/courierflow.git
+cd courierflow
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Fill in: DATABASE_URL, AZAMPAY_CLIENT_ID, AZAMPAY_CLIENT_SECRET, AZAMPAY_WEBHOOK_TOKEN, R2 credentials
+
+# Run database migrations
+npx prisma migrate dev
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+courierflow/
+├── app/              # Next.js App Router pages and API routes
+├── components/       # Reusable UI components
+├── lib/              # Utilities, database client, helpers
+├── prisma/           # Database schema and migrations
+├── public/           # Static assets and PWA manifest
+└── types/            # TypeScript type definitions
+```
 
-## Payment webhooks
+---
 
-**AzamPay does not sign its callbacks** — there is no shared webhook secret, no
-HMAC and no `x-azampay-signature` header (their dashboard exposes only a Client
-ID and Client Secret, which are used for the API auth token, not callbacks). So
-`/api/webhooks/azampay` cannot be secured by signature verification. Instead it
-is protected by three independent layers:
+## 💳 Payment Webhooks
 
-1. **URL secret token** — set `AZAMPAY_WEBHOOK_TOKEN` to a long random value and
-   register the callback URL with that token attached, e.g.
-   `https://your-app/api/webhooks/azampay?token=<AZAMPAY_WEBHOOK_TOKEN>`.
-   Requests without the exact token are rejected (401). This token is **required
-   in production**; local development may omit it for sandbox testing.
-2. **Amount check** — a payment is only marked `PAID` for the exact amount that
-   was originally initiated. A callback claiming a different amount is refused.
-3. **Idempotency** — a payment already marked `PAID` is never re-processed.
+CourierFlow integrates with **AzamPay** for Tanzanian mobile money payments (M-Pesa, Airtel Money, Tigo Pesa). The webhook system is secured via:
 
-> Note: the URL token is defence-in-depth, not cryptographic proof of origin
-> (it is static and travels inside the URL over TLS). The strongest available
-> hardening — re-querying transaction status server-to-server with the
-> Client ID/Secret before marking `PAID` — is pending confirmation that
-> AzamPay's status endpoint covers MNO collections (it is currently documented
-> for disbursements only).
+- **URL token** — requests without a valid token are rejected
+- **Amount validation** — payments are only confirmed for the exact expected amount
+- **Idempotency** — duplicate callbacks are safely ignored
 
-## Proof-of-delivery uploads
+---
 
-Configure CORS once in the Cloudflare R2 bucket settings; it is intentionally
-not configured during a customer upload request. Allow the deployed app origin,
-`PUT`, `GET`, and `HEAD` methods, and the `Content-Type` header.
+## 👤 Author
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Issa Ahmadi Mchowera**
+Full Stack Developer — Dar es Salaam, Tanzania
+GitHub: [@Zabepro](https://github.com/Zabepro)
